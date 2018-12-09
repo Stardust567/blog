@@ -4,7 +4,7 @@ date: 2018-12-09 00:15:26
 tags: [数据结构,大一,排序]
 categories: 数据结构
 ---
-![](https://img-blog.csdn.net/20180618190433214?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5MjEzNzU1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![](http://i2.bvimg.com/671322/d9957b333e5df961.png)
 <!-- More -->
 ### 快排（nlogn）：
 将列表以首元(a[0])为判断依据隔成两部分,第一部分全部小于首元，第二部分全部大于等于首元。（复杂度n）重复上述过程至所有元素（次数为logn）

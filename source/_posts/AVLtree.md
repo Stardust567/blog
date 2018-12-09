@@ -17,12 +17,12 @@ categories: 数据结构
  在A结点的左孩子的左子树或者右孩子的右子树上插入结点。
 
  直接将B结点提上来，再把离A最近的子树滑给A。
-![](https://img-blog.csdn.net/20180623190626223?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5MjEzNzU1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![](http://i2.bvimg.com/671322/26068bd5bc2cb6dcs.png)
 #### 双旋：
  在A结点的左孩子的右子树或者右孩子的左子树上插入结点。
 
  直接将C提到A、B之间，再把C的子树分别分给A、B所缺的位置。
-![](https://img-blog.csdn.net/20180623190657715?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5MjEzNzU1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![](http://i2.bvimg.com/671322/3f4a94a6e1a8e887s.png)
 
 ### 删除：
 
@@ -32,10 +32,7 @@ categories: 数据结构
 #### 删除：
 分以下几种情况：
 
-##### 叶结点：
- 直接删除就好
-##### 单分支结点：
- 把后面那个孩子结点接上来就好啦
-##### 双分支结点：
- 把这个双分支结点p的值，用其中序前驱结点q的值替代后，直接删掉结点q
-![](https://img-blog.csdn.net/20180625213754570?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5MjEzNzU1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+* 叶结点：直接删除就好
+* 单分支结点：把后面那个孩子结点接上来就好啦
+* 双分支结点：把这个双分支结点p的值，用其中序前驱结点q的值替代后，直接删掉结点q
+![](http://i2.bvimg.com/671322/2abdc5431b3d5617s.png)
