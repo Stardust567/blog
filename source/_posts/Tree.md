@@ -4,7 +4,8 @@ date: 2018-12-08 23:25:45
 tags: [数据结构,大一]
 categories: 数据结构
 ---
-二叉树的编程我觉着可以帮助你学习递归 : )
+这里是关于二叉树的一系列函数C的代码
+~~二叉树的编程我觉着可以帮助你学习递归 : )~~
 <!-- More -->
 ```C
 #include <stdio.h>
@@ -220,5 +221,4 @@ int tree_width(TNode* tree){
   	free(queue);
   	return width;
 }
-
 ​```

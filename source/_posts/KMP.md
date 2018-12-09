@@ -4,8 +4,6 @@ date: 2018-12-08 23:09:54
 tags: [数据结构,大一]
 categories: 数据结构
 ---
-KMP匹配
-
 普通的查找匹配需要在失配时回溯到失配串第二位继续开始查找是否匹配，复杂度过高。
 
 于是我们想着能不能一次不回头的走到底，针对模式串创建了一个辅助数组（next数组）
@@ -13,16 +11,16 @@ KMP匹配
 next数组各个元的值：固定字符串的最长真前缀（第一个字符伊始，但不含最后一个）和最长真后缀相同的长度，以下举例。
 
 
-n e x t 数 组 |	各元固定字符串 | 相同最长前后缀	| 前后缀相同长度
-:----|:----:|:----:|----: 
-n e x t [0] | a	| “ ”	|0
-n e x t [1]	| ab	| “ ”	| 0
-n e x t [2]	| aba	| “a”	| 1
-n e x t [3]	| abab	| “ab”	| 2
+n e x t 数 组 |	各元固定字符串 | 相同最长前后缀 | 前后缀相同长度
+:----:|:----:|:----:|:----: 
+n e x t [0] | a	| “ ” |0
+n e x t [1]	| ab | “ ” | 0
+n e x t [2]	| aba | “a” | 1
+n e x t [3]	| abab | “ab” | 2
 n e x t [4]	| ababa	| “aba”	| 3
-n e x t [5]	| ababab	| “abab”	| 4
-n e x t [6]	| abababc	| “ ”	| 0
-n e x t [7]	| abababca	| “a”	| 1
+n e x t [5]	| ababab | “abab” | 4
+n e x t [6]	| abababc | “ ”	| 0
+n e x t [7]	| abababca | “a” | 1
   a b a b a b c a   的 n e x t 数 组 为 ：
 
 -1 0 0 1 2 3 4 0 1
@@ -39,8 +37,7 @@ n e x t [7]	| abababca	| “a”	| 1
 
 如果失配，i指针不回溯，j指针回溯（j = next[j]），当回溯到首元时，无法再回溯，继续往后试探 i++ , j++
 
-```C
-​
+```C​
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

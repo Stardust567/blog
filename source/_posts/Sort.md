@@ -6,40 +6,47 @@ categories: 数据结构
 ---
 ![](https://img-blog.csdn.net/20180618190433214?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5MjEzNzU1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 <!-- More -->
-快排（nlogn）：将列表以首元(a[0])为判断依据隔成两部分,第一部分全部小于首元，第二部分全部大于等于首元。（复杂度n）重复上述过程至所有元素（次数为logn）
+### 快排（nlogn）：
+将列表以首元(a[0])为判断依据隔成两部分,第一部分全部小于首元，第二部分全部大于等于首元。（复杂度n）重复上述过程至所有元素（次数为logn）
 
-void     quick_sort(int a[],int low,int high);
+>void     quick_sort(int a[],int low,int high);
 
-int        find_pos(int a[],int low,int high);
+>int        find_pos(int a[],int low,int high);
 
-希尔（nlogn）：将列表以不同的步长进行划分，常用n/2不断划分至步长为1。每次划分后将各子列表排序即可。希尔复杂度最优时为1.3n，分析起来好像有点复杂orz
+### 希尔（nlogn）：
+将列表以不同的步长进行划分，常用n/2不断划分至步长为1。每次划分后将各子列表排序即可。希尔复杂度最优时为1.3n，分析起来好像有点复杂orz
 
-void     shell_sort(int a[],int n);
+>void     shell_sort(int a[],int n);
 
-void     step_wise(int a[],int D,int n);
+>void     step_wise(int a[],int D,int n);
 
-归并（nlogn）：将列表不断二分成两份列表，当分成每个子列表的长度都为1时显然每个子列表都有序（次数logn），然后将有序的两个子列表不断合并并使之有序（复杂度n）
+### 归并（nlogn）：
+将列表不断二分成两份列表，当分成每个子列表的长度都为1时显然每个子列表都有序（次数logn），然后将有序的两个子列表不断合并并使之有序（复杂度n）
 
-void     merge_sort(int a[], int b[], int start, int end);
+>void     merge_sort(int a[], int b[], int start, int end);
 
-void     Merge(int a[],int b[], int start, int mid, int end);
+>void     Merge(int a[],int b[], int start, int mid, int end);
 
-堆排（nlogn）：大顶堆（二叉树）的性质是父节点大于子节点，先通过这个性质建个堆。（tips：建堆的时候用完全二叉树的性质a[i]d的左子树为a[2*i]，所以存值从a[1]开始，a[0]用来暂存值就好啦）此时a[1]一定是最大数，将a[1]（堆顶）与末元a[n-1]（最后一个叶节点）交换后将a[n-1]忽略，不进入下次堆排（n--）再将堆的性质恢复（logn），依次进行至堆顶（n）
+### 堆排（nlogn）：
+大顶堆（二叉树）的性质是父节点大于子节点，先通过这个性质建个堆。（tips：建堆的时候用完全二叉树的性质a[i]d的左子树为a[2*i]，所以存值从a[1]开始，a[0]用来暂存值就好啦）此时a[1]一定是最大数，将a[1]（堆顶）与末元a[n-1]（最后一个叶节点）交换后将a[n-1]忽略，不进入下次堆排（n--）再将堆的性质恢复（logn），依次进行至堆顶（n）
 
-void     heap_sort(int a[],int n);
+>void     heap_sort(int a[],int n);
 
-void     sift(int a[],int r,int n);
+>void     sift(int a[],int r,int n);
 
-排序树（nlogn）：右节点>父节点>左节点，建立后将该二叉树中序遍历即可。
+### 排序树（nlogn）：
+右节点>父节点>左节点，建立后将该二叉树中序遍历即可。
 
-void    tree_sort(int a[],int n);
+>void    tree_sort(int a[],int n);
 
-void    setting(TNode* tree,int x);
+>void    setting(TNode* tree,int x);
 
-void    tree_order(TNode* tree);
+>void    tree_order(TNode* tree);
 
-基数排序 (d(n+r))：依次按不同位数（d）进行关键字的比较（需要构建队列（队列大小r））
+### 基数排序 (d(n+r))：
+依次按不同位数（d）进行关键字的比较（需要构建队列（队列大小r））
 
+以下附实现的C语言代码：
 ```C
 ​
 #include <stdio.h> 
