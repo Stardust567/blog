@@ -37,7 +37,8 @@ n e x t [7]	| abababca | “a” | 1
 
 如果失配，i指针不回溯，j指针回溯（j = next[j]），当回溯到首元时，无法再回溯，继续往后试探 i++ , j++
 
-```C​
+```C
+​
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
