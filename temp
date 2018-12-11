@@ -1,0 +1,11 @@
+INFO  Start processing
+INFO  Files loaded in 1.52 s
+INFO  0 files generated in 3.78 s
+INFO  Deploying: git
+INFO  Clearing .deploy_git folder...
+INFO  Copying files from public folder...
+INFO  Copying files from extend dirs...
+On branch master
+nothing to commit, working tree clean
+Branch 'master' set up to track remote branch 'master' from 'https://github.com/Stardust567/stardust567.github.io.git'.
+INFO  Deploy done: git
