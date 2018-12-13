@@ -4,7 +4,9 @@ date: 2018-12-12 15:58:28
 tags: [大二,Java,多线程]
 categories: Java
 ---
-
+关于Java多线程的简单入门知识
+注意协调不同线程驱动的任务之间对资源的使用
+<!-- More -->
 ### 并发的概念
 1. **进程：**每个进程都有独立的代码和数据空间（进程上下文），进程间的切换会有较大的开销，一个进程包含1--n个线程。（进程是资源分配的最小单位）
 2. **线程：**同一类线程共享代码和数据空间，每个线程有独立的运行栈和程序计数器(PC)，线程切换开销小。（线程是cpu调度的最小单位）
@@ -150,7 +152,6 @@ public class Main {
  * 是某个类的范围，synchronized static aStaticMethod{}防止多个线程同时访问这个类中的synchronized static 方法。它可以对类的所有对象实例起作用。
 
  *synchronized关键字是不能继承的，继承类需要你显式的指定它的某个方法为synchronized方法；*
-
 2. 线程同步的TIPS
  * 线程同步的目的是为了保护多个线程反问一个资源时对资源的破坏。
  * 线程同步方法是通过锁来实现，每个对象都有且仅有一个锁，这个锁与一个特定的对象关联，线程一旦获取了对象锁，其他访问该对象的线程就无法再访问该对象的其他非同步方法。
@@ -158,3 +159,77 @@ public class Main {
  * 对于同步，要时刻清醒在哪个对象上同步，这是关键。
  * 编写线程安全的类，需要时刻注意对多个线程竞争访问资源的逻辑和安全做出正确的判断，对“原子”操作做出分析，并保证原子操作期间别的线程无法访问竞争资源。
  * 当多个线程等待一个对象锁时，没有获取到锁的线程将发生阻塞。
+3. 代码示例
+ 创造一个`Object Lock`来充当锁，
+ 用Lock类的变量lockon作为是否循环wait()语句的条件：
+```Java 
+class Lock{
+    int lockon;
+    Lock(){
+        this.lockon = 1;
+    }
+}
+
+class ThTest implements Runnable{
+    Lock lock;
+    ThTest(Lock lock){
+        this.lock = lock;
+    }
+    public void run() {
+        synchronized(lock) {
+            while(lock.lockon==1) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println(lock.lockon+"Lock is down.
+                        Next it will be on.");
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            lock.lockon = 1;
+            lock.notify();
+        }
+    }
+}
+
+class ThRest implements Runnable{
+    Lock lock;
+    ThRest(Lock lock){
+        this.lock = lock;
+    }
+    public void run() {
+        synchronized(lock) {
+            while(lock.lockon==0) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println(lock.lockon+"Lock is on.
+                        Next it will be down.");
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            lock.lockon = 0;
+            lock.notify();
+        }
+    }
+}
+
+public class Test8_3 {
+    public static void main(String args[]) {
+        Lock lock = new Lock();
+        ThTest thtest = new ThTest(lock);
+        ThRest threst = new ThRest(lock);
+        new Thread(thtest).start();
+        new Thread(threst).start();
+    }
+}```
