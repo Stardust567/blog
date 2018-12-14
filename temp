@@ -108,3 +108,18 @@ INFO  Copying files from extend dirs...
  create mode 100644 "tags/\345\244\232\347\272\277\347\250\213/index.html"
 Branch 'master' set up to track remote branch 'master' from 'https://github.com/Stardust567/stardust567.github.io.git'.
 INFO  Deploy done: git
+INFO  Start processing
+INFO  Files loaded in 1.89 s
+INFO  Generated: sitemap.xml
+INFO  Generated: search.xml
+INFO  Generated: index.html
+INFO  Generated: 2018/12/12/Java多线程入门/index.html
+INFO  4 files generated in 4.87 s
+INFO  Deploying: git
+INFO  Clearing .deploy_git folder...
+INFO  Copying files from public folder...
+INFO  Copying files from extend dirs...
+[master 996308b] Site updated: 2018-12-13 19:20:04
+ 4 files changed, 12 insertions(+), 12 deletions(-)
+Branch 'master' set up to track remote branch 'master' from 'https://github.com/Stardust567/stardust567.github.io.git'.
+INFO  Deploy done: git
