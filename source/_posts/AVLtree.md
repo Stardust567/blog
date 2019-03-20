@@ -1,8 +1,11 @@
 ---
 title: AVLtree
-date: 2018-12-08 23:32:09
-tags: [数据结构,大一]
+tags:
+  - 数据结构
+  - 大一
 categories: 数据结构
+abbrlink: 27676
+date: 2018-12-08 23:32:09
 ---
 平衡二叉搜索树(Self-balancing binary search tree)又被称为AVL树（有别于AVL算法）
 它左右的两个子树高度差的绝对值不超过1，且左右两个子树都是平衡二叉树。

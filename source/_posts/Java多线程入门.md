@@ -1,8 +1,12 @@
 ---
 title: Java多线程入门
-date: 2018-12-12 15:58:28
-tags: [大二,Java,多线程]
+tags:
+  - 大二
+  - Java
+  - 多线程
 categories: Java
+abbrlink: 13592
+date: 2018-12-12 15:58:28
 ---
 关于Java多线程的简单入门知识
 注意协调不同线程驱动的任务之间对资源的使用
