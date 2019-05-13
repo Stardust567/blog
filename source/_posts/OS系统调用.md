@@ -1,5 +1,5 @@
 ---
-title: OS系统调用
+title: System Call
 copyright: true
 tags:
   - 大二
