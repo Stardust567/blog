@@ -106,7 +106,8 @@ live2d:
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: https://github.com/Stardust567/stardust567.github.io.git
+  # repo: https://github.com/Stardust567/stardust567.github.io.git
+  repo: https://Stardust567:Rycbar3313@github.com/Stardust567/Stardust567.github.io.git
   branch: master
   
 search:

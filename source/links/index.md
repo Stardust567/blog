@@ -8,7 +8,7 @@ date: 2019-03-21 11:25:41
 
 · [555的梦境](https://www.555dreams.xin/)
 · [薇拉航线](https://www.zuozuovera.com/)
-· [Viva La Vida](https://browallia.github.io/)
+· [Viva La Vida](http://www.browallia.top/)
 · [译文Mosquito](http://www.yiwencc.com/)
 
 ### 交换友链
