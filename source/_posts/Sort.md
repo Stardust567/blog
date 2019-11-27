@@ -55,7 +55,7 @@ date: 2018-06-27 00:15:26
 
 以下附实现的C语言代码：
 ```C
-​
+
 #include <stdio.h> 
 #include<stdlib.h>
 #include<time.h> 
@@ -179,8 +179,8 @@ void sift(int p[],int r,int n){//树根p[r]（可能是子树的树根）最值�
 	int k = 2*r;
 	int temp = p[r];
 	while(k<=n){//尽力将p[r]沉到最底，以确保整体性质的正确 
-		if(k<n && p[k+1]>p[k]) k++;//k<n防止k+1越界
-		if(temp>=p[k]) break;
+		if(k+1<n && p[k+1]>p[k]) k++;//防止k+1越界
+		if(k==n || temp>=p[k]) break;
 		p[r] = p[k];r = k;//先不急交换完p[r]，我们看看p[r]最后能沉到哪 
 		k = 2*r;
 	} 
@@ -190,7 +190,7 @@ void heap_sort(int a[],int n){
 	n = n+1;int p[n];
 	for(int i=1;i<n;i++) p[i]=a[i-1];
 	for(int i=n/2;i>=1;i--) sift(p,i,n);
-	for(int i=n;i>=2;i--){
+	for(int i=n-1;i>=2;i--){
 		p[0] = p[1];
 		p[1] = p[i];
 		p[i] = p[0];

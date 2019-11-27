@@ -42,26 +42,22 @@ news
 2. 可选地如何跟踪页面中的链接
 3. 解析下载的页面内容以提取数据
 
-在news目录下cmd输入`scrapy genspider QuotesSpider theguardian.com`
+在news目录下cmd输入`scrapy genspider HeadSpider theguardian.com`
 
 ```python
 import scrapy
 
-class QuotesSpider(scrapy.Spider):
-    name = "quotes"
+class news(scrapy.Spider):
+    name = "news"
     start_urls = [
-        'http://quotes.toscrape.com/page/1/',
-        'http://quotes.toscrape.com/page/2/',
+        'https://www.theguardian.com/',
     ]
     '''start_urls将默认执行yield scrapy.Request故可省略以下：
     for url in urls:
         yield scrapy.Request(url=url, callback=self.parse)
     '''
     def parse(self, response):
-        page = response.url.split("/")[-2]
-        filename = 'quotes-%s.html' % page
-        with open(filename, 'wb') as f:
-            f.write(response.body)
+        pass
 ```
 
 `parse()`方法通常解析响应，将抽取的数据提取为dicts，并查找要遵循的新URL并`Request`从中创建新的request()
@@ -222,5 +218,13 @@ DEFAULT_REQUEST_HEADERS = {
 }
 ```
 
+## 针对反爬
 
+去奥斯汀访学（旅游）时候写的yelp爬虫 [yelpReview](<https://github.com/Stardust567/yelp>)路过朋友有兴趣可以看看。
 
+- 使用user agent池，轮流选择之一来作为user agent；池中包含常见的浏览器的user agent。
+- 禁止cookies(参考 [`COOKIES_ENABLED`](https://scrapy-chs.readthedocs.io/zh_CN/0.24/topics/downloader-middleware.html#std:setting-COOKIES_ENABLED))，有些站点会使用cookies来发现爬虫的轨迹。
+- 设置下载延迟(2或更高)。参考 [`DOWNLOAD_DELAY`](https://scrapy-chs.readthedocs.io/zh_CN/0.24/topics/settings.html#std:setting-DOWNLOAD_DELAY) 设置。
+- 如果可行，使用 [Google cache](http://www.googleguide.com/cached_pages.html) 来爬取数据，而不是直接访问站点。
+- 使用IP池。例如免费的 [Tor项目](https://www.torproject.org/) 或付费服务([ProxyMesh](http://proxymesh.com/))。
+- 使用高度分布式的下载器(downloader)来绕过禁止(ban)，您就只需要专注分析处理页面。这样的例子有: [Crawlera](http://crawlera.com/)
