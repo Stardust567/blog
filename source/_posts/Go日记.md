@@ -10,7 +10,9 @@ abbrlink: '2766'
 date: 2019-11-26 09:11:49
 ---
 
- 记录下休学期间学习Go语言的一些想法、笔记和踩过的一些坑。
+ 记录下休学期间学习Go语言入门的一些想法、笔记和踩过的一些坑。
+
+希望之后这个Go系列还会继续完善下去不被弃坑（小声）
 
 <!-- More -->
 
@@ -39,9 +41,7 @@ date: 2019-11-26 09:11:49
 
 至此理论上就能跑了，不放心可以用`go version`检查版本`go env`检查环境变量。
 
-# Hello World
-
-## 基础结构
+# 基础结构
 
 用hello world信仰开头：
 ```Go
@@ -89,7 +89,7 @@ func main() {
 }
 ```
 
-### 常量
+## 常量
 
 在Go程序中，常量可定义为数值、布尔值或字符串等类型。
 
@@ -101,9 +101,9 @@ const Pi float32 = 3.1415926
 
 Go 常量和一般程序语言不同的是，可以指定相当多的小数位数(例如200位)， 若指定給float32自动缩短为32bit，指定给float64自动缩短为64bit，详情参考[链接](http://golang.org/ref/spec#Constants)
 
-### 基础类型
+## 基础类型
 
-#### Boolean
+### Boolean
 
 ```Go
 //在Go中，布尔值的类型为bool，值是true或false，默认为false。
@@ -116,7 +116,7 @@ func test() {
 }
 ```
 
-#### 数值类型
+### 数值类型
 
 Go同时支持`int`和`uint`，两种类型长度相同，但具体长度取决于编译器的实现。
 Go里面也有直接定义好位数的类型：`int8`, `int16`, `int32(rune)`, `int64`和`uint8(byte)`, `uint16`, `uint32`, `uint64`。
@@ -127,7 +127,7 @@ Go里面也有直接定义好位数的类型：`int8`, `int16`, `int32(rune)`, `
 复数默认类型是`complex128`（64位实数+64位虚数）也有`complex64`(32位实数+32位虚数)
 复数的形式为`RE + IMi`，其中`RE`是实数部分，`IM`是虚数部分，而最后的`i`是虚数单位。
 
-#### 字符串
+### 字符串
 
 ```Go
 //Go中的字符串都是采用UTF-8字符集编码
@@ -179,7 +179,7 @@ hello
     world
 ```
 
-#### ERROR
+### ERROR
 
 Go内置有一个`error`类型，专门用来处理错误信息，Go的`package`里面还专门有一个包`errors`来处理错误：
 
@@ -190,7 +190,7 @@ if err != nil {
 }
 ```
 
-#### 分组声明
+### 分组声明
 
 ```Go
 import "fmt"
@@ -226,16 +226,16 @@ var(
 )
 ```
 
-#### 代码规范
+### 代码规范
 
 - 大写字母开头的变量是可导出的，也就是其它包可以读取的，是公有变量；
 - 小写字母开头的就是不可导出的，是私有变量。
 - 大写字母开头的函数相当于`class`中的带`public`关键词的公有函数；
 - 小写字母开头的函数相当于`private`关键词的私有函数。
 
-### 内建类型
+## 内建类型
 
-#### array
+### array
 
 ```Go
 var arr [10]int  // 声明了一个int类型的数组
@@ -260,7 +260,7 @@ doubleArray := [2][4]int{[4]int{1, 2, 3, 4}, [4]int{5, 6, 7, 8}}
 easyArray := [2][4]int{{1, 2, 3, 4}, {5, 6, 7, 8}}
 ```
 
-#### slice
+### slice
 
 初始定义数组时并不知道数组长度，在Go里面这种数据结构叫slice。
 slice并不是真正意义上的动态数组，而是一个引用类型。slice总是指向一个底层array。
@@ -303,7 +303,7 @@ slice = array[2:4:7] // 第三个参数可以指定容量
 // 容量为7-2，即5。这样新的slice就没办法访问array最后三个元素
 ```
 
-#### map
+### map
 map也就是Python中字典的概念
 
 ```Go
@@ -341,15 +341,15 @@ if ok {
 delete(rating, "C")  // 删除key为C的元素
 ```
 
-#### make、new操作（TODO）
+### make、new操作（TODO）
 
 内建函数new和make是两个用于内存分配的原语，简单说new只分配内存，make用于slice，map，和channel的初始化。在Go语言中，如果一个局部变量在函数返回后仍然被使用，这个变量会从heap，而不是stack中分配内存。内建函数make(T, args)与new(T)的用途不一样。它只用来创建slice，map和channel，并且返回一个初始化的(而不是置零)，类型为T的值（而不是*T）。之所以有所不同，是因为这三个类型的背后引用了使用前必须初始化的数据结构。例如，slice是一个三元描述符，包含一个指向数据（在数组中）的指针，长度，以及容量，在这些项被初始化之前，slice都是nil的。对于slice，map和channel，make初始化这些内部数据结构，并准备好可用的值。记住make只用于map，slice和channel，并且不返回指针。要获得一个显式的指针，使用new进行分配，或者显式地使用一个变量的地址。
 
-## 流程控制
+# 流程控制
 
 Go中流程控制分三大类：条件判断，循环控制和无条件跳转。
 
-### if
+## if
 
 Go里面`if`条件判断语句中不需要括号，如下代码所示
 
@@ -374,7 +374,7 @@ if x := computedValue(); x == 10 {
 }
 ```
 
-### for
+## for
 
 ```Go
 package main
@@ -424,7 +424,7 @@ for _, v := range map{
 }
 ```
 
-### switch
+## switch
 
 ```Go
 i := 10
@@ -442,9 +442,9 @@ default:
 
 Go里面`switch`默认相当于每个`case`最后带有`break`，匹配成功后不会自动向下执行其他case，而是跳出整个`switch`, 但是可以在case最后加上`fallthrough`强制执行后面的case代码。
 
-## 函数
+# 函数
 
-### 声明
+## 声明
 
 ```Go
 func funcName(input1 type1, input2 type2) (output1 type1, output2 type2) {
@@ -484,7 +484,7 @@ func SumAndProduct(A, B int) (add int, Multiplied int) {
 }
 ```
 
-### 变参
+## 变参
 
 接受变参的函数是有着不定数量的参数的。为了做到这点，首先需要定义函数使其接受变参：
 
@@ -501,7 +501,7 @@ for _, n := range arg {
 }
 ```
 
-### 传值与传指针
+## 传值与传指针
 
 当我们传一个参数值到被调用函数里面时，实际上是传了这个值的一份copy，当在被调用函数中修改参数值的时候，调用函数中相应实参不会发生任何变化，因为数值变化只作用在copy上。
 
@@ -533,7 +533,7 @@ func main() {
 - 传指针比较轻量级 (8bytes),只是传内存地址，我们可以用指针传递体积大的结构体。如果用参数值传递的话, 在每次copy上面就会花费相对较多的系统开销（内存和时间）。所以当你要传递大的结构体的时候，用指针是一个明智的选择。
 - Go语言中`channel`，`slice`，`map`这三种类型的实现机制类似指针，所以可以直接传递，而不用取地址后传递指针。（注：若函数需改变`slice`的长度，则仍需要取地址传递指针）
 
-### defer
+## defer
 
 Go语言中有种不错的设计，即延迟（defer）语句，你可以在函数中添加多个defer语句。当函数执行到最后时，这些defer语句会按照逆序执行，最后该函数返回。特别是当你在进行一些打开资源的操作时，遇到错误需要提前返回，在返回前你需要关闭相应的资源，不然很容易造成资源泄露等问题。
 
@@ -580,7 +580,7 @@ for i := 0; i < 5; i++ {
 }
 ```
 
-### 函数作为值、类型
+## 函数作为值、类型
 
 在Go中函数也是一种变量，我们可以通过`type`来定义它
 
@@ -632,7 +632,7 @@ func main(){
 
 函数当做值和类型在我们写一些通用接口的时候非常有用，通过上面例子我们看到`testInt`这个类型是一个函数类型，然后两个`filter`函数的参数和返回值与`testInt`类型是一样的，但是我们可以实现很多种的逻辑，这样使得我们的程序变得非常的灵活。
 
-### Panic和Recover
+## Panic和Recover
 
 Go没有像Java那样的异常机制，它不能抛出异常，而是使用了`panic`和`recover`机制。一定要记住，你应当把它作为最后的手段来使用，也就是说，你的代码中应当没有，或者很少有`panic`的东西。
 
@@ -670,7 +670,7 @@ func throwsPanic(f func()) (b bool) {
 }
 ```
 
-### `main`函数和`init`函数
+## `main`函数和`init`函数
 
 Go里面有两个保留的函数：`init`函数（能够应用于所有的`package`）和`main`函数（只能应用于`package main`）。这两个函数在定义时不能有任何的参数和返回值。虽然一个`package`里面可以写任意多个`init`函数，但这无论是对于可读性还是以后的可维护性来说，都强烈建议用户在一个`package`中每个文件只写一个`init`函数。
 
@@ -680,7 +680,7 @@ Go程序会自动调用`init()`和`main()`，所以你不需要在任何地方�
 
 ![main函数引入包初始化流程图](https://astaxie.gitbooks.io/build-web-application-with-golang/zh/images/2.3.init.png?raw=true)
 
-### import
+## import
 
 我们在写Go代码的时候经常用到import这个命令用来导入包文件，而我们经常看到的方式参考如下：
 
@@ -745,7 +745,7 @@ fmt.Println("hello world")
 
    _操作其实是引入该包，而不直接使用包里面的函数，而是调用了该包里面的init函数。
 
-   ## struct
+# struct
 
    ```Go
    type person struct {
@@ -773,4 +773,823 @@ fmt.Println("hello world")
    - 3.当然也可以通过`new`函数分配一个指针，此处P的类型为*person
 
      P := new(person)
+     
+## struct的匿名字段
 
+   上面介绍了如何定义一个struct，定义时候字段名与其类型相对应。
+
+   实际上Go支持只提供类型，而不写字段名的方式，也就是*匿名字段*，也称为*嵌入字段*。
+
+   当匿名字段是一个struct的时候，那么这个struct所拥有的全部字段都被隐式地引入了当前定义的这个struct。
+
+```Go
+package main
+
+import "fmt"
+
+type Human struct {
+    name string
+    age int
+    weight int
+}
+type Student struct {
+    Human  // 匿名字段，那么默认Student就包含了Human的所有字段
+    speciality string
+}
+
+func main() {
+    // 我们初始化一个学生
+    mark := Student{Human{"Mark", 25, 120}, "Computer Science"}
+
+    // 我们访问相应的字段
+    fmt.Println("His name is ", mark.name)
+    fmt.Println("His speciality is ", mark.speciality)
+    // 修改对应的备注信息
+    mark.speciality = "AI"
+    // 修改他的体重信息
+    mark.weight += 60
+    fmt.Println("His weight is", mark.weight)
+}
+```
+
+**匿名字段就是这样，能够实现字段的继承。**
+
+同时student还能访问Human这个字段作为字段名。
+
+```Go
+mark.Human = Human{"Marcus", 55, 220}
+mark.Human.age -= 1
+```
+
+**所有的内置类型和自定义类型都是可以作为匿名字段。**
+
+```Go
+package main
+
+import "fmt"
+
+type Skills []string
+
+type Human struct {
+    name string
+    age int
+    weight int
+}
+type Student struct {
+    Human  // 匿名字段，struct
+    Skills // 匿名字段，自定义的类型string slice
+    int    // 内置类型作为匿名字段
+    speciality string
+}
+
+func main() {
+    // 初始化学生Jane
+    jane := Student{Human:Human{"Jane", 35, 100}, speciality:"Biology"}
+    // 修改自定义类型skill技能字段
+    jane.Skills = []string{"anatomy"}
+    fmt.Println("Her skills are ", jane.Skills)
+    jane.Skills = append(jane.Skills, "physics", "golang")
+    fmt.Println("Her skills now are ", jane.Skills)
+    // 修改匿名内置类型字段
+    jane.int = 3
+    fmt.Println("Her preferred number is", jane.int)
+}
+```
+
+可以看到真的非常的好用了。
+
+# 面向对象
+
+函数的另一种形态，带有接收者的函数，我们称为`method`
+
+## method
+
+用Rob Pike的话来说就是：
+
+> "A method is a function with an implicit first argument, called a receiver."
+
+method的语法如下：
+
+```
+func (r ReceiverType) funcName(parameters) (results)
+```
+
+下面我们用最开始的例子用method来实现：
+
+```Go
+package main
+
+import (
+    "fmt"
+    "math"
+)
+
+type Rectangle struct {
+    width, height float64
+}
+type Circle struct {
+    radius float64
+}
+
+func (r Rectangle) area() float64 {
+    return r.width*r.height
+}
+func (c Circle) area() float64 {
+    return c.radius * c.radius * math.Pi
+}
+
+func main() {
+    r := Rectangle{12, 2}
+    c := Circle{10}
+
+    fmt.Println("Area of r is: ", r.area())
+    fmt.Println("Area of c is: ", c.area())
+}
+```
+
+在使用method的时候重要注意几点
+
+- 虽然method的名字一模一样，但是如果接收者不一样，那么method就不一样
+- method里面可以访问接收者的字段
+- 调用method通过`.`访问，就像struct里面访问字段一样
+
+除了结构体这一比较特殊的自定义类型外，还可以在任意自定义类型中定义任意多的`method`
+
+```Go
+package main
+
+import "fmt"
+
+const(
+    WHITE = iota
+    BLACK
+    BLUE
+    RED
+    YELLOW
+)
+
+type Color byte
+
+type Box struct {
+    width, height, depth float64
+    color Color
+}
+
+type BoxList []Box //a slice of boxes
+
+func (b Box) Volume() float64 {
+    return b.width * b.height * b.depth
+}
+
+func (b *Box) SetColor(c Color) {
+    b.color = c
+}
+
+func (bl BoxList) BiggestColor() Color {
+    v := 0.00
+    k := Color(WHITE)
+    for _, b := range bl {
+        if bv := b.Volume(); bv > v {
+            v = bv
+            k = b.color
+        }
+    }
+    return k
+}
+
+func (bl BoxList) PaintItBlack() {
+    for i, _ := range bl {
+        bl[i].SetColor(BLACK)
+    }
+}
+
+func (c Color) String() string {
+    strings := []string {"WHITE", "BLACK", "BLUE", "RED", "YELLOW"}
+    return strings[c]
+}
+
+func main() {
+    boxes := BoxList {
+        Box{4, 4, 4, RED},
+        Box{10, 10, 1, YELLOW},
+        Box{1, 1, 20, BLACK},
+        Box{10, 10, 1, BLUE},
+        Box{10, 30, 1, WHITE},
+        Box{20, 20, 20, YELLOW},
+    }
+
+    fmt.Printf("We have %d boxes in our set\n", len(boxes))
+    fmt.Println("The volume of the first one is", boxes[0].Volume(), "cm³")
+    fmt.Println("The color of the last one is",boxes[len(boxes)-1].color.String())
+    fmt.Println("The biggest one is", boxes.BiggestColor().String())
+
+    fmt.Println("Let's paint them all black")
+    boxes.PaintItBlack()
+    fmt.Println("The color of the second one is", boxes[1].color.String())
+
+    fmt.Println("Obviously, now, the biggest one is", boxes.BiggestColor().String())
+}
+```
+
+### 指针作为receiver
+
+`SetColor`这个method，它的receiver是一个指向Box的指针，这不难理解。
+
+*Q:* 那`SetColor`函数里应该是`*b.Color=c`,而不是`b.Color=c`才对啊,因为需要读取到指针相应的值。
+
+*A:* 其实Go里面这两种方式都ok，当你用指针去访问相应的字段时(虽然指针没有任何的字段)，Go知道要通过指针去获取这个值，多人性化。
+
+*Q:* 那`PaintItBlack`里面调用`SetColor`不应该写成`(&bl[i]).SetColor(BLACK)`吗，因为`SetColor`的receiver是*Box，而不是Box。
+
+*A:* Yelp，但这两种方式都可以，因为Go知道receiver是指针，就自动帮你转了。
+
+也就是说：
+
+> 如果一个method的receiver是*T,你可以在一个T类型的实例变量V上面调用这个method，而不需要&V去调用这个method
+
+类似的
+
+> 如果一个method的receiver是T，你可以在一个*T类型的变量P上面调用这个method，而不需要* P去调用这个method
+
+### method继承&重写
+
+如果匿名字段实现了一个method，那么包含这个匿名字段的struct也能调用该method包括重写这个method。
+
+```Go
+package main
+
+import "fmt"
+
+type Human struct {
+    name string
+    age int
+    phone string
+}
+
+type Student struct {
+    Human //匿名字段
+    school string
+}
+
+type Employee struct {
+    Human //匿名字段
+    company string
+}
+
+//Human定义method
+func (h *Human) SayHi() {
+    fmt.Printf("Hi, I am %s you can call me on %s\n", h.name, h.phone)
+}
+
+//Employee的method重写Human的method
+func (e *Employee) SayHi() {
+    fmt.Printf("Hi, I am %s, I work at %s. Call me on %s\n", e.name,
+        e.company, e.phone) //Yes you can split into 2 lines here.
+}
+
+func main() {
+    mark := Student{Human{"Mark", 25, "222-222-YYYY"}, "MIT"}
+    sam := Employee{Human{"Sam", 45, "111-888-XXXX"}, "Golang Inc"}
+
+    mark.SayHi()
+    sam.SayHi()
+}
+```
+
+通过这些内容，我们可以设计出基本的面向对象的程序了，但是Go里面的面向对象是如此的简单，没有任何的私有、公有关键字，通过大小写来实现(大写开头的为公有，小写开头的为私有)，方法也同样适用这个原则。
+
+# interface
+
+## 什么是interface
+
+简单的说，interface是一组method签名的组合，我们通过interface来定义对象的一组行为。
+interface定义了一组方法，如果某个对象实现了某个接口的**所有**方法，则此对象实现了此接口。
+interface可以被任意的对象实现，一个对象可以实现任意多个interface。
+
+## interface值
+
+一个interface变量可以存实现这个interface的任意类型的对象。
+
+例如定义了一个Men interface类型的变量m，那么m可以存Human、Student或者Employee值。
+因为m能够持有这三种类型的对象，那我们可以定义一个Men类型的slice`x := make([]Men, 3)`，这个slice可以被赋予实现了Men接口的任意结构的对象。
+
+```Go
+package main
+
+import "fmt"
+
+type Human struct {
+    name string
+    age int
+    phone string
+}
+
+type Student struct {
+    Human //匿名字段
+    school string
+    loan float32
+}
+
+type Employee struct {
+    Human //匿名字段
+    company string
+    money float32
+}
+
+func (h Human) SayHi() {
+    fmt.Printf("Hi, I am %s you can call me on %s\n", h.name, h.phone)
+}
+
+func (h Human) Sing(lyrics string) {
+    fmt.Println("La la la la...", lyrics)
+}
+
+//Employee重载Human的SayHi方法
+func (e Employee) SayHi() {
+    fmt.Printf("Hi, I am %s, I work at %s. Call me on %s\n", e.name,
+        e.company, e.phone)
+    }
+
+// Interface Men被Human,Student和Employee实现
+// 因为这三个类型都实现了这两个方法
+type Men interface {
+    SayHi()
+    Sing(lyrics string)
+}
+
+func main() {
+    mike := Student{Human{"Mike", 25, "222-222-XXX"}, "MIT", 0.00}
+    paul := Student{Human{"Paul", 26, "111-222-XXX"}, "Harvard", 100}
+    sam := Employee{Human{"Sam", 36, "444-222-XXX"}, "Golang Inc.", 1000}
+    tom := Employee{Human{"Tom", 37, "222-444-XXX"}, "Things Ltd.", 5000}
+
+    //定义Men类型的变量i
+    var i Men
+
+    //i能存储Student
+    i = mike
+    fmt.Println("This is Mike, a Student:")
+    i.SayHi()
+    i.Sing("November rain")
+
+    //i也能存储Employee
+    i = tom
+    fmt.Println("This is tom, an Employee:")
+    i.SayHi()
+    i.Sing("Born to be wild")
+
+    //定义了slice Men
+    fmt.Println("Let's use a slice of Men and see what happens")
+    x := make([]Men, 3)
+    //这三个都是不同类型的元素，但是他们实现了interface同一个接口
+    x[0], x[1], x[2] = paul, sam, mike
+
+    for _, value := range x{
+        value.SayHi()
+    }
+}
+```
+
+interface就是一组抽象方法的集合，必须由其他非interface类型实现，而不能自我实现。
+
+## 空interface
+
+空interface(interface{})不包含任何的method，正因为如此，所有的类型都实现了空interface。
+
+空interface可以存储任意类型的数值，有点类似于C语言的void*类型。
+
+```Go
+// 定义a为空接口
+var a interface{}
+var i int = 5
+s := "Hello world"
+// a可以存储任意类型的数值
+a = i
+a = s
+```
+
+一个函数把interface{}作为参数，那么他可以接受任意类型的值作为参数；
+如果一个函数返回interface{}，那么也就可以返回任意类型的值。
+
+## interface函数参数
+
+interface的变量可以持有任意实现该interface类型的对象，那是不是可以通过定义interface参数，让函数接受各种类型的参数。比如`fmt.Println`可以接受任意类型的数据，即任何实现了String方法的类型都能作为参数被`fmt.Println`调用。
+
+```Go
+type Stringer interface {
+     String() string
+}
+```
+
+```Go
+package main
+import (
+    "fmt"
+    "strconv"
+)
+
+type Human struct {
+    name string
+    age int
+    phone string
+}
+
+// 通过这个方法 Human 实现了 fmt.Stringer
+func (h Human) String() string {
+    return "❰"+h.name+" - "+strconv.Itoa(h.age)+" years -  ✆ " +h.phone+"❱"
+}
+
+func main() {
+    Bob := Human{"Bob", 39, "000-7777-XXX"}
+    fmt.Println("This Human is : ", Bob)
+}
+```
+
+method：String实现了`fmt.Stringer`这个interface，即如果需要某个类型能被fmt包以特殊的格式输出，就必须实现Stringer接口。如果没有实现这个接口，fmt将以默认的方式输出。
+
+```Go
+//实现同样的功能
+fmt.Println("The biggest one is", boxes.BiggestsColor().String())
+fmt.Println("The biggest one is", boxes.BiggestsColor())
+```
+
+*注：实现了error接口的对象（即实现了Error() string的对象），使用fmt输出时，会调用Error()方法，因此不必再定义String()方法了。*
+
+## interface变量存储的类型
+
+我们知道interface的变量里面可以存储任意类型的数值(该类型实现了interface)。那怎么反向知道这个变量里面实际保存了的是哪个类型的对象呢？目前常用的有两种方法：
+
+- Comma-ok断言
+
+  直接判断是否是该类型的变量： value, ok = element.(T)，这里value就是变量的值，ok是一个bool类型，element是interface变量，T是断言的类型。
+
+  如果element里面确实存储了T类型的数值，ok返回true，否则返回false（但这样一般会引入大量if-else）
+
+- switch测试
+
+  ```Go
+  package main
+  
+    import (
+        "fmt"
+        "strconv"
+    )
+  
+    type Element interface{}
+    type List [] Element
+  
+    type Person struct {
+        name string
+        age int
+    }
+  
+    //打印
+    func (p Person) String() string {
+        return "(name: " + p.name + " - age: "+strconv.Itoa(p.age)+ " years)"
+    }
+  
+    func main() {
+        list := make(List, 3)
+        list[0] = 1 //an int
+        list[1] = "Hello" //a string
+        list[2] = Person{"Dennis", 70}
+  
+        for index, element := range list{
+            switch value := element.(type) {
+                case int:
+                    fmt.Printf("list[%d] is an int and its value is %d\n", index, value)
+                case string:
+                    fmt.Printf("list[%d] is a string and its value is %s\n", index, value)
+                case Person:
+                    fmt.Printf("list[%d] is a Person and its value is %s\n", index, value)
+                default:
+                    fmt.Println("list[%d] is of a different type", index)
+            }
+        }
+    }
+  ```
+  
+  **`element.(type)`语法不能在switch外的任何逻辑里面使用，如果要在switch外面判断一个类型就使用`comma-ok`。**
+
+## 嵌入interface
+
+Go里面真正吸引人的是它内置的逻辑语法，就像我们在学习Struct时学习的匿名字段。如果一个interface1作为interface2的一个嵌入字段，那么interface2隐式的包含了interface1里面的method。
+
+源码包container/heap里面有这样的一个定义：
+
+```Go
+type Interface interface {
+    sort.Interface //嵌入字段sort.Interface
+    Push(x interface{}) //a Push method to push elements into the heap
+    Pop() interface{} //a Pop elements that pops elements from the heap
+}
+```
+
+另一个例子就是io包下面的 io.ReadWriter ，它包含了io包下面的Reader和Writer两个interface：
+
+```Go
+// io.ReadWriter
+type ReadWriter interface {
+    Reader
+    Writer
+}
+```
+
+## 反射
+
+所谓反射就是能检查程序在运行时的状态，一般用到的包是reflect包[reflect包的实现原理](http://golang.org/doc/articles/laws_of_reflection.html)
+
+使用reflect一般分成三步：要去反射是一个类型的值(这些值都实现了空interface)，首先需要把它转化成reflect对象(reflect.Type或者reflect.Value，根据不同的情况调用不同的函数)。
+
+```Go
+t := reflect.TypeOf(i)    //得到类型的元数据,通过t我们能获取类型定义里面的所有元素
+v := reflect.ValueOf(i)   //得到实际的值，通过v我们获取存储在里面的值，还可以去改变值
+```
+
+转化为reflect对象之后我们就可以进行一些操作了，也就是将reflect对象转化成相应的值，例如
+
+```Go
+tag := t.Elem().Field(0).Tag  //获取定义在struct里面的标签
+name := v.Elem().Field(0).String()  //获取存储在第一个字段里面的值
+```
+
+获取反射值能返回相应的类型和数值
+
+```Go
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+fmt.Println("type:", v.Type())
+fmt.Println("kind is float64:", v.Kind() == reflect.Float64)
+fmt.Println("value:", v.Float())
+```
+
+最后，反射的字段必须是可修改的。如果下面这样写，会error
+
+```Go
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+v.SetFloat(7.1)
+```
+
+如果要修改相应的值，必须这样写
+
+```Go
+var x float64 = 3.4
+p := reflect.ValueOf(&x)
+v := p.Elem()
+v.SetFloat(7.1)
+```
+
+
+# 并发
+
+## goroutine
+
+goroutine是Go并行设计的核心。goroutine说到底其实就是协程，但是它比线程更小，十几个goroutine可能体现在底层就是五六个线程，Go语言内部实现了这些goroutine之间的内存共享。执行goroutine只需极少的栈内存(大概是4~5KB)，当然会根据相应的数据伸缩。也正因为如此，可同时运行成千上万个并发任务。goroutine比thread更易用、更高效、更轻便。
+
+goroutine是通过Go的runtime管理的一个线程管理器。goroutine通过`go`关键字实现，类似个普通函数。
+
+```Go
+package main
+
+import (
+    "fmt"
+    "runtime"
+)
+
+func say(s string) {
+    for i := 0; i < 5; i++ {
+        runtime.Gosched() //让CPU把时间片让给别人,下次某个时候继续恢复执行该goroutine
+        fmt.Println(s)
+    }
+}
+
+func main() {
+    go say("world") //开一个新的Goroutines执行
+    say("hello") //当前Goroutines执行
+}
+
+// 以上程序执行后将输出：
+// hello
+// world
+// hello
+// world
+// hello
+// world
+// hello
+// world
+// hello
+```
+
+上面的多个goroutine运行在同一个进程里面，共享内存数据，设计上遵循：**不通过共享来通信，而通过通信来共享。**
+
+## channels
+
+goroutine运行在相同的地址空间，因此访问共享内存必须做好同步。
+
+goroutine间数据的通信机制为channel。channel可以与Unix shell 中双向管道做类比：可以通过它发送或者接收值。**这些值只能是channel类型**。
+
+定义一个channel时，需要定义发送到channel的值的类型。**必须使用make 创建channel：**
+
+```Go
+ci := make(chan int)
+cs := make(chan string)
+cf := make(chan interface{})
+```
+
+channel通过操作符`<-`来接收和发送数据
+
+```Go
+ch <- v    // 发送v到channel ch.
+v := <-ch  // 从ch中接收数据，并赋值给v
+```
+
+我们把这些应用到我们的例子中来：
+
+```Go
+package main
+
+import "fmt"
+
+func sum(a []int, c chan int) {
+    total := 0
+    for _, v := range a {
+        total += v
+    }
+    c <- total  // send total to c
+}
+
+func main() {
+    a := []int{7, 2, 8, -9, 4, 0}
+
+    c := make(chan int)
+    go sum(a[:len(a)/2], c)
+    go sum(a[len(a)/2:], c)
+    x, y := <-c, <-c  // receive from c
+
+    fmt.Println(x, y, x + y)
+}
+```
+
+默认情况下，channel接收和发送数据都是阻塞的，除非另一端已经准备好，这样就使得Goroutines同步变的更加的简单，而不需要显式的lock。所谓阻塞，也就是如果读取（value := <-ch）它将会被阻塞，直到有数据接收。其次，任何发送（ch<-5）将会被阻塞，直到数据被读出。无缓冲channel是在多个goroutine之间同步很棒的工具。
+
+## Buffered Channels
+
+上面为Go默认的非缓存类型的channel，Go也允许指定channel的缓冲大小，即channel可以存储多少元素。
+
+`ch:= make(chan bool, 4)`创建了可以存储4个元素的bool 型channel。这个channel 中前4个元素可以无阻塞的写入。当写入第5个元素时，代码将会阻塞，直到其他goroutine从channel 中读取一些元素，腾出空间。
+
+```Go
+ch := make(chan type, value)
+```
+
+当 value = 0 时，channel 是无缓冲阻塞读写的，当value > 0 时，channel 有缓冲、是非阻塞的，直到写满 value 个元素才阻塞写入。
+
+```Go
+package main
+
+import "fmt"
+
+func main() {
+    c := make(chan int, 2)//修改2为1就报错，修改2为3可以正常运行
+    c <- 1
+    c <- 2
+    fmt.Println(<-c)
+    fmt.Println(<-c)
+}
+        //修改为1报如下的错误:
+        //fatal error: all goroutines are asleep - deadlock!
+```
+
+## Range和Close
+
+上面这个例子需要读取两次c，Go也可以通过range，像操作slice或者map一样操作缓存类型的channel
+
+```Go
+package main
+
+import (
+    "fmt"
+)
+
+func fibonacci(n int, c chan int) {
+    x, y := 1, 1
+    for i := 0; i < n; i++ {
+        c <- x
+        x, y = y, x + y
+    }
+    close(c)
+}
+
+func main() {
+    c := make(chan int, 10)
+    go fibonacci(cap(c), c)
+    for i := range c {
+        fmt.Println(i)
+    }
+}
+```
+
+`for i := range c`能够不断的读取channel里面的数据，直到该channel被显式的关闭。
+
+上面代码生产者通过内置函数`close`关闭channel。关闭channel之后就无法再发送任何数据了，在消费方可以通过语法`v, ok := <-ch`测试channel是否被关闭。如果ok返回false，那么说明channel已经没有任何数据并且已经被关闭。
+
+> 记住应该在生产者的地方关闭channel，而不是消费的地方去关闭它，这样容易引起panic
+>
+> 另外记住一点的就是channel不像文件之类的，不需要经常去关闭，只有当你确实没有任何发送数据了，或者你想显式的结束range循环之类的
+
+## Select
+
+如果存在多个channel的时候，Go里面提供了一个关键字`select`，通过`select`可以监听channel上的数据流动。
+
+`select`默认是阻塞的，只有当监听的channel中有发送或接收可以进行时才会运行，当多个channel都准备好的时候，select是随机的选择一个执行的。
+
+```Go
+package main
+
+import "fmt"
+
+func fibonacci(c, quit chan int) {
+    x, y := 1, 1
+    for {
+        select {
+        case c <- x:
+            x, y = y, x + y
+        case <-quit:
+            fmt.Println("quit")
+            return
+        }
+    }
+}
+
+func main() {
+    c := make(chan int)
+    quit := make(chan int)
+    go func() {
+        for i := 0; i < 10; i++ {
+            fmt.Println(<-c)
+        }
+        quit <- 0
+    }()
+    fibonacci(c, quit)
+}
+```
+
+在`select`里面还有default语法，`select`其实就是类似switch的功能，default就是当监听的channel都没有准备好的时候，默认执行的（select不再阻塞等待channel）。
+
+```Go
+select {
+case i := <-c:
+    // use i
+default:
+    // 当c阻塞的时候执行这里
+}
+```
+
+## 超时
+
+有时候会出现goroutine阻塞的情况，为了避免整个程序进入阻塞，可以利用select来设置超时
+
+```Go
+func main() {
+    c := make(chan int)
+    o := make(chan bool)
+    go func() {
+        for {
+            select {
+                case v := <- c:
+                    println(v)
+                case <- time.After(5 * time.Second):
+                    println("timeout")
+                    o <- true
+                    break
+            }
+        }
+    }()
+    <- o
+}
+```
+
+## runtime goroutine
+
+runtime包中有几个处理goroutine的函数：
+
+- Goexit
+
+  退出当前执行的goroutine，但是defer函数还会继续调用
+
+- Gosched
+
+  让出当前goroutine的执行权限，调度器安排其他等待的任务运行，并在下次某个时候从该位置恢复执行。
+
+- NumCPU
+
+  返回 CPU 核数量
+
+- NumGoroutine
+
+  返回正在执行和排队的任务总数
+
+- GOMAXPROCS
+
+  用来设置可以并行计算的CPU核数的最大值，并返回之前的值。
