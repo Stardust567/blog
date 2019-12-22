@@ -42,7 +42,7 @@ news
 2. 可选地如何跟踪页面中的链接
 3. 解析下载的页面内容以提取数据
 
-在news目录下cmd输入`scrapy genspider HeadSpider theguardian.com`
+在news目录下cmd输入`scrapy genspider news theguardian.com`
 
 ```python
 import scrapy
@@ -94,38 +94,134 @@ class NewsItem(scrapy.Item):
 
 Item pipeline组件有两个典型作用：1. 查重丢弃 ；2. 保存数据到文件或数据库中。
 
-假设我们采用MongoDB，打开news文件夹下的pipelines.py创建类NewsPipline
+假设我们采用本地json存取：
 
 ```python
-import pymongo
+from scrapy.exceptions import DropItem
+import json
+import codecs
 
 class NewsPipeline(object):
-    def __init__(self):
-        client = pymongo.MongoClient('127.0.0.1', 27017)# 建立MongoDB数据库连接
-        db = client['ScrapyChina']# 连接所需数据库,ScrapyChina为数据库名
-        self.post = db['mingyan']# 连接所用集合，即通常所说的表，mingyan为表名
+    
     def process_item(self, item, spider):
         title = item['title']
         if title:
             title_str = ''.join(title)
             item['title'] = title_str.replace('\n', '')
+        else: // 如果title为空则跳过这个item
+            raise DropItem('Information was missing')
         time = item['time']
         if time:
             item['time'] = time.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
         category = item['category']
         if category:
             item['category'] = category.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
         tags = item['tags']
         if tags:
             tags_str = ','.join(tags)
             item['tags'] = tags_str.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
         content = item['content']
         if content:
             content_str = ''.join(content)
             item['content'] = content_str.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
+            
+class JsonWriterPipeline(object):
+    def __init__(self):
+        self.file = codecs.open('data_utf8.json', 'w', encoding='utf-8')
+		// 如果是中文需要utf8的话，import codecs
+    def process_item(self, item, spider):
+        line = json.dumps(dict(item), ensure_ascii=False) + "\n"
+        self.file.write(line)
+        return item
+    def spider_closed(self, spider):
+        self.file.close()
+```
+
+之后别忘了在setting中改一下`ITEM_PIPELINES`的设置：
+
+```python
+ITEM_PIPELINES = {
+    'news.pipelines.NewsPipeline': 300,
+    'news.pipelines.JsonWriterPipeline': 800,
+}
+```
+
+假设我们采用MongoDB，打开news文件夹下的pipelines.py创建类NewsPipline
+
+```python
+from scrapy.exceptions import DropItem
+import pymongo
+import codecs
+import logging
+
+class NewsPipeline(object):
+    
+    def process_item(self, item, spider):
+        title = item['title']
+        if title:
+            title_str = ''.join(title)
+            item['title'] = title_str.replace('\n', '')
+        else: // 如果title为空则跳过这个item
+            raise DropItem('Information was missing')
+        time = item['time']
+        if time:
+            item['time'] = time.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
+        category = item['category']
+        if category:
+            item['category'] = category.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
+        tags = item['tags']
+        if tags:
+            tags_str = ','.join(tags)
+            item['tags'] = tags_str.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
+        content = item['content']
+        if content:
+            content_str = ''.join(content)
+            item['content'] = content_str.replace('\n', '')
+        else:
+            raise DropItem('Information was missing')
+            
+class MongoPipeline(object):
+	def __init__(self):
+        # 链接数据库
+        client = pymongo.MongoClient(host=settings['MONGO_HOST'], port=settings['MONGO_PORT'])
+        self.db = client[settings['MONGO_DB']]  # 获得数据库的句柄
+        self.coll = self.db[settings['MONGO_COLL']]  # 获得collection的句柄
+        # 数据库登录需要帐号密码的话
+        # self.db.authenticate(settings['MONGO_USER'], settings['MONGO_PSW'])
+ 
+    def process_item(self, item, spider):
         postItem = dict(item)  # 把item转化成字典形式
-        self.post.insert(postItem)  # 向数据库插入一条记录
+        self.coll.insert(postItem)  # 向数据库插入一条记录
         return item  # 会在控制台输出原item数据，可以选择不写
+```
+
+同样我们需要在setting中改一下`ITEM_PIPELINES`的设置：
+
+```python
+ITEM_PIPELINES = {
+    'news.pipelines.NewsPipeline': 300,
+    'news.pipelines.MongoPipeline': 800,
+}
+MONGO_HOST = "127.0.0.1"  # 主机IP
+MONGO_PORT = 27017  # 端口号
+MONGO_DB = news_tutorial"  # 库名
+MONGO_COLL = "news_items"  # collection名
+# MONGO_USER = "simple" #用户名
+# MONGO_PSW = "test" #用户密码
 ```
 
 ## 修改Spider
@@ -202,11 +298,13 @@ class HeadSpider(scrapy.Spider):
 
 打开news文件夹下的settings.py可以修改一些小细节便于我们爬取数据。
 
+TIPS：加上`FEED_EXPORT_ENCODING = 'utf-8'`适用于爬取中文内容哦。
+
 ```python
 FEED_EXPORT_ENCODING = 'utf-8' # 修改编码为utf-8
 DOWNLOAD_TIMEOUT = 10 # 下载超时设定，超过10秒没响应则放弃当前URL
 ITEM_PIPELINES = {
-   'news.pipelines.NewsPipeline': 300,
+   'news.pipelines.NewsPipeline': 300, // 这个没改，参照pipe看个人选择
 }
 CONCURRENT_REQUESTS = 32 # 最大并发请求数（默认16
 DOWNLOAD_DELAY = 0.01 # 增加爬取延迟，降低被爬网站服务器压力
@@ -228,3 +326,67 @@ DEFAULT_REQUEST_HEADERS = {
 - 如果可行，使用 [Google cache](http://www.googleguide.com/cached_pages.html) 来爬取数据，而不是直接访问站点。
 - 使用IP池。例如免费的 [Tor项目](https://www.torproject.org/) 或付费服务([ProxyMesh](http://proxymesh.com/))。
 - 使用高度分布式的下载器(downloader)来绕过禁止(ban)，您就只需要专注分析处理页面。这样的例子有: [Crawlera](http://crawlera.com/)
+
+## Mongodb
+
+创建userAdminAnyDatabase角色，用来管理用户，可以通过这个角色来创建、删除用户。
+
+```shell
+> use admin
+switched to db admin
+> db.createUser(
+...   {
+...     user: "userAdmin",//用户名
+...     pwd: "123",//密码
+...     roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+...   }
+... )
+Successfully added user: {
+    "user" : "dba",
+    "roles" : [
+        {
+            "role" : "userAdminAnyDatabase",
+            "db" : "admin"
+        }
+    ]
+}
+```
+
+以上是我怕忘了自己设置过的user和pwd各位游客可以不用在意（小声）
+
+打开安装mongoDB环境的命令行，比如我之前是在Windows下安装的，故打开cmd输入`mongo`会有如下输出：
+
+```shell
+MongoDB shell version v3.4.10-58-g9847179
+connecting to: mongodb://127.0.0.1:27017
+MongoDB server version: 3.4.10-58-g9847179
+```
+
+然后我个人安利下可视化工具adminMongo下载轻松简单（主要是界面好看清爽）
+
+打开adminMongo目录，`npm start`会有如下输入，根据提示打开http://localhost:1234即可
+
+```shell
+> admin-mongo@0.0.23 start D:\adminMongo
+> node app.js
+
+adminMongo listening on host: http://localhost:1234
+```
+
+打开页面后，connection名字仅供参考（随便设）MongoDB连接字符串的格式可以是：`mongodb://<user>:<password>@127.0.0.1:<port>/<db>`指定<db>级别是可选的，一般`mongodb://:@127.0.0.1:27017`即可。
+有关MongoDB连接字符串的更多信息，请参阅[正式的MongoDB文档](http://docs.mongodb.org/manual/reference/connection-string/)。
+
+## 写入依赖
+
+打开项目所在文件目录，然后打开命令行输入即可得到requirements.txt
+
+```shell
+pipreqs ./ --encoding=utf-8
+```
+
+这样之后有人需要用这个项目的时候直接打开命令行输入以下即可：
+
+```shell
+pip install -r requirements.txt
+```
+
