@@ -64,7 +64,9 @@ class news(scrapy.Spider):
 
 ## 提取数据
 
-`::text`表示抽取标签内字符串；
+强烈安利用`scrapy shell url`的方式先在shell里试试，这样不会运行几次就被反爬。
+
+`::text`表示抽取标签内字符串，`::attr(title)`表示抽取title属性内容
 
 `extract()`为一个包含数据串的list，`extract_first()`为list的第一个值
 
@@ -325,7 +327,7 @@ DEFAULT_REQUEST_HEADERS = {
 - 设置下载延迟(2或更高)。参考 [`DOWNLOAD_DELAY`](https://scrapy-chs.readthedocs.io/zh_CN/0.24/topics/settings.html#std:setting-DOWNLOAD_DELAY) 设置。
 - 如果可行，使用 [Google cache](http://www.googleguide.com/cached_pages.html) 来爬取数据，而不是直接访问站点。
 - 使用IP池。例如免费的 [Tor项目](https://www.torproject.org/) 或付费服务([ProxyMesh](http://proxymesh.com/))。
-- 使用高度分布式的下载器(downloader)来绕过禁止(ban)，您就只需要专注分析处理页面。这样的例子有: [Crawlera](http://crawlera.com/)
+- 使用分布式下载器(downloader)来绕过禁止(ban)，就只需要专注分析处理页面。eg: [Crawlera](http://crawlera.com/)
 
 ## Mongodb
 

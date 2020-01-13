@@ -24,7 +24,7 @@ date: 2019-11-26 09:11:49
 
 [下载地址](<https://golang.org/dl/>) 笔者现安装的版本是`go version go1.13.4 windows/amd64`
 
-安装完成后默认会在环境变量 Path 后添加 Go 安装目录下的 bin 目录 `C:\Go\bin\`，并添加环境变量 GOROOT，值为 Go 安装根目录 `C:\Go\`因为笔者电脑内存不够，于是放在了D盘，于是修改一通环境变量，最主要就是GOROOT目录下存在go.exe以及你的代码放置区域要存在GOPATH里。
+安装完成后默认会在环境变量 Path 后添加 Go 安装目录下的 bin 目录 `C:\Go\bin\`，并添加环境变量 GOROOT，值为 Go 安装根目录 `C:\Go\`因为笔者电脑内存不够，于是放在了D盘，于是修改一通环境变量，最主要就是GOROOT目录下存在go.exe~~以及你的代码放置区域要存在GOPATH里~~（GOPATH在go提出GO MOD之后就没那么重要了)。
 
 ## Linux
 
@@ -52,8 +52,8 @@ func main() {
 }
 ```
 
-Go程序是通过**package**来组织的`package <pkgName>`这一行告诉我们当前文件属于哪个包，包名**main**表明它是一个可独立运行的包，在编译后会产生可执行文件。除了main包之外，其它的包最后都会生成***.a**文件（也就是包文件）并放置在`$GOPATH/pkg/$GOOS_$GOARCH`中。
-每个可独立运行的Go程序，必定包含一个`package main`其中必定包含一个无参无return的入口函数**main**。
+`package <pkgName>`表明当前文件属于哪个包，包名**main**表明它是一个可独立运行的包，编译后会产生可执行文件。除了main包之外，其它的包最后都会生成***.a**文件（包文件）并放置在`$GOPATH/pkg/$GOOS_$GOARCH`中。
+每个可独立运行的Go程序，必定包含一个`package main`其中必含一个无参无return的入口函数**main**。
 
 Go使用UTF-8字符串和标识符。
 
@@ -193,21 +193,6 @@ if err != nil {
 ### 分组声明
 
 ```Go
-import "fmt"
-import "os"
-
-const i = 100
-const pi = 3.1415
-const prefix = "Go_"
-
-var i int
-var pi float32
-var prefix string
-```
-
-等价于：
-
-```Go
 import(
     "fmt"
     "os"
@@ -228,8 +213,8 @@ var(
 
 ### 代码规范
 
-- 大写字母开头的变量是可导出的，也就是其它包可以读取的，是公有变量；
-- 小写字母开头的就是不可导出的，是私有变量。
+- **大写**字母开头的变量是可导出的，也就是其它包可以读取的，是**公有**变量；
+- **小写**字母开头的就是不可导出的，是**私有**变量。
 - 大写字母开头的函数相当于`class`中的带`public`关键词的公有函数；
 - 小写字母开头的函数相当于`private`关键词的私有函数。
 
@@ -240,8 +225,7 @@ var(
 ```Go
 var arr [10]int  // 声明了一个int类型的数组
 arr[0] = 42      // 数组下标是从0开始的
-arr[1] = 13      // 赋值操作
-fmt.Printf("The first one is %d\n", arr[0])  // 获取数据，返回42
+fmt.Printf("The first one is %d\n", arr[0])  // 返回42
 fmt.Printf("The last one is %d\n", arr[9]) // 未赋值默认返回0
 ```
 
@@ -290,10 +274,9 @@ slice是引用类型，所以当引用改变其中元素的值时，其它的所
 slice内置函数：
 - `len` 获取slice的长度
 - `cap` 获取slice的最大容量
-- `append` 向slice里面追加一个或者多个元素，然后返回一个和slice一样类型的slice
+- `append` 向slice里追加一或多个元素，然后返回一个和修改后slice一样类型的slice
 - `copy` 函数copy从源slice的src中复制元素到目标dst，并且返回复制的元素的个数
 
-注：`append`函数会改变slice所引用的数组的内容，从而影响到引用同一数组的其它slice。 
 但当slice中没有剩余空间（即`(cap-len) == 0`）时，此时将动态分配新的数组空间。返回的slice数组指针将指向这个空间，而原数组的内容将保持不变；其它引用此数组的slice则不受影响。
 
 ```Go
@@ -320,16 +303,15 @@ fmt.Println("第三个数字是: ", numbers["three"]) // 读取数据
 
 使用map过程中需要注意的几点：
 
-- map是无序的，每次打印出的map会不一样，它不能通过index获取，而必须通过key获取
-- map的长度是不固定的，也就是和slice一样，也是一种引用类型，如果两个map同时指向一个底层，那么一个改变，另一个也相应的改变
+- map无序，每次打印出的map会不一样，它不能通过index获取，而必须通过key获取
+- map长度不固定，和slice一样是引用类型，如果两个map同时指向一个底层，一个改变，另一个也相应改变
 - 内置的`len`函数同样适用于map，返回map拥有的key的数量
 - map的值很方便修改，通过`numbers["one"]=11`可以把key为one的字典值改为11
-- map和其他基本型别不同，它不是thread-safe，在多个go-routine存取时，必须使用mutex lock机制
+- map和其他基本型别不同，它不是thread-safe，在多个go-routine存取时，必须使用**mutex lock**机制
 
 map的初始化可以通过`key:val`的方式初始化值，同时map内置有判断是否存在`key`的方式
 
 ```Go
-// 初始化一个字典
 rating := map[string]float32{"C":5, "Go":4.5, "Python":4.5, "C++":2 }
 // map有两个返回值，第二个返回值，如果不存在key，那么ok为false，如果存在ok为true
 csharpRating, ok := rating["C#"]
@@ -346,8 +328,6 @@ delete(rating, "C")  // 删除key为C的元素
 内建函数new和make是两个用于内存分配的原语，简单说new只分配内存，make用于slice，map，和channel的初始化。在Go语言中，如果一个局部变量在函数返回后仍然被使用，这个变量会从heap，而不是stack中分配内存。内建函数make(T, args)与new(T)的用途不一样。它只用来创建slice，map和channel，并且返回一个初始化的(而不是置零)，类型为T的值（而不是*T）。之所以有所不同，是因为这三个类型的背后引用了使用前必须初始化的数据结构。例如，slice是一个三元描述符，包含一个指向数据（在数组中）的指针，长度，以及容量，在这些项被初始化之前，slice都是nil的。对于slice，map和channel，make初始化这些内部数据结构，并准备好可用的值。记住make只用于map，slice和channel，并且不返回指针。要获得一个显式的指针，使用new进行分配，或者显式地使用一个变量的地址。
 
 # 流程控制
-
-Go中流程控制分三大类：条件判断，循环控制和无条件跳转。
 
 ## if
 
@@ -416,7 +396,7 @@ for k,v:=range map {
 }
 ```
 
-由于 Go 支持 “多值返回”, 而对于“声明而未被调用”的变量, 编译器会报错, 于是用`_`来丢弃不需要的返回值 
+Go 对于“声明而未被调用”的变量, 编译器会报错, 于是用`_`来丢弃不需要的返回值 
 
 ```Go
 for _, v := range map{
@@ -474,7 +454,7 @@ func main() {
 }
 ```
 
-改进意见：函数的声明还可以更人性化，可读性更强一点：
+当然，函数的声明还可以更人性化，可读性更强一点：
 
 ```Go
 func SumAndProduct(A, B int) (add int, Multiplied int) {
@@ -503,9 +483,9 @@ for _, n := range arg {
 
 ## 传值与传指针
 
-当我们传一个参数值到被调用函数里面时，实际上是传了这个值的一份copy，当在被调用函数中修改参数值的时候，调用函数中相应实参不会发生任何变化，因为数值变化只作用在copy上。
+当传参到函数里时，实际是传了这个值的一份copy，当在被调用函数中修改参数值的时候，调用函数中相应实参不会发生任何变化，因为数值变化只作用在copy上，而想直接传这个值本身就需要用到指针。
 
-而想直接传这个值本身就需要用到指针。我们知道，变量在内存中是存放于一定地址上的，修改变量实际是修改变量地址处的内存。只有`add1`函数知道`x`变量所在的地址，才能修改`x`变量的值。所以我们需要将`x`所在地址`&x`传入函数，并将函数的参数的类型由`int`改为`*int`，即改为指针类型，才能在函数中修改`x`变量的值。此时参数仍然是按copy传递的，只是copy的是一个指针。
+变量在内存中是存放于一定地址上的，修改变量实际是修改变量地址处的内存。只有`add1`函数知道`x`变量所在的地址，才能修改`x`变量的值。所以我们需要将`x`所在地址`&x`传入函数，并将函数的参数的类型由`int`改为`*int`，即改为指针类型，才能在函数中修改`x`变量的值。此时参数仍然是按copy传递的，只是copy的是一个指针。
 
 ```Go
 package main
@@ -530,14 +510,14 @@ func main() {
 这样，我们就达到了修改`x`的目的。那么到底传指针有什么好处呢？
 
 - 传指针使得多个函数能操作同一个对象。
-- 传指针比较轻量级 (8bytes),只是传内存地址，我们可以用指针传递体积大的结构体。如果用参数值传递的话, 在每次copy上面就会花费相对较多的系统开销（内存和时间）。所以当你要传递大的结构体的时候，用指针是一个明智的选择。
-- Go语言中`channel`，`slice`，`map`这三种类型的实现机制类似指针，所以可以直接传递，而不用取地址后传递指针。（注：若函数需改变`slice`的长度，则仍需要取地址传递指针）
+- 传指针比较轻量级 (8bytes)只传内存地址，我们可以用指针传递体积大的结构体。如果用参数值传递的话, 在每次copy上就会花费相对较多的系统开销（内存和时间）。所以当传递大结构体的时候，用指针是一个明智的选择。
+- Go语言中`channel`，`slice`，`map`这三种类型的实现机制类似指针，所以可以直接传递，而不用取地址后传递指针。**（注：若函数需改变`slice`的长度，则仍需要取地址传递指针）**
 
 ## defer
 
-Go语言中有种不错的设计，即延迟（defer）语句，你可以在函数中添加多个defer语句。当函数执行到最后时，这些defer语句会按照逆序执行，最后该函数返回。特别是当你在进行一些打开资源的操作时，遇到错误需要提前返回，在返回前你需要关闭相应的资源，不然很容易造成资源泄露等问题。
+Go支持延迟（defer）语句，可以在函数中添加多个defer语句。当函数执行到最后时，这些defer语句会按照**逆序**执行，最后该函数返回。
 
-如下代码所示，我们一般写打开一个资源是这样操作的：
+在进行一些打开资源的操作时，遇到错误需要提前返回，在返回前需要关闭相应的资源，不然很容易造成资源泄露等问题。如下代码所示，我们一般写打开一个资源是这样操作的：
 
 ```Go
 func ReadWrite() bool {
@@ -585,7 +565,7 @@ for i := 0; i < 5; i++ {
 在Go中函数也是一种变量，我们可以通过`type`来定义它
 
 ```go
-type typeName func(input1 inputType1 , input2 inputType2 [, ...]) (result1 resultType1 [, ...])
+type typeName func(input1 type1, input2 type2 [, ...]) (result1 type1 [, ...])
 ```
 
 ```Go
@@ -630,11 +610,11 @@ func main(){
 }
 ```
 
-函数当做值和类型在我们写一些通用接口的时候非常有用，通过上面例子我们看到`testInt`这个类型是一个函数类型，然后两个`filter`函数的参数和返回值与`testInt`类型是一样的，但是我们可以实现很多种的逻辑，这样使得我们的程序变得非常的灵活。
+函数当做值和类型在写一些通用接口的时候非常有用，程序灵活性也会大大增加。
 
 ## Panic和Recover
 
-Go没有像Java那样的异常机制，它不能抛出异常，而是使用了`panic`和`recover`机制。一定要记住，你应当把它作为最后的手段来使用，也就是说，你的代码中应当没有，或者很少有`panic`的东西。
+Go没有像Java那样的异常机制，而是使用了`panic`和`recover`机制。BUT**代码中应当没有，或很少有`panic`**。
 
 Panic
 
@@ -672,17 +652,17 @@ func throwsPanic(f func()) (b bool) {
 
 ## `main`函数和`init`函数
 
-Go里面有两个保留的函数：`init`函数（能够应用于所有的`package`）和`main`函数（只能应用于`package main`）。这两个函数在定义时不能有任何的参数和返回值。虽然一个`package`里面可以写任意多个`init`函数，但这无论是对于可读性还是以后的可维护性来说，都强烈建议用户在一个`package`中每个文件只写一个`init`函数。
+Go有两个保留的函数：`init`函数（能用于所有`package`）和`main`函数（只用于`package main`）。这两个函数在定义时不能有任何的参数和返回值。虽然一个`package`里面可以写任意多个`init`函数，但这无论是对于可读性还是以后的可维护性来说，都强烈建议在一个`package`中**每个文件只写一个`init`函数**。
 
 Go程序会自动调用`init()`和`main()`，所以你不需要在任何地方调用这两个函数。每个`package`中的`init`函数都是可选的，但`package main`就必须包含一个`main`函数。
 
-程序的初始化和执行都起始于`main`包。如果`main`包还导入了其它的包，那么就会在编译时将它们依次导入。有时一个包会被多个包同时导入，那么它只会被导入一次（例如很多包可能都会用到`fmt`包，但它只会被导入一次，因为没有必要导入多次）。当一个包被导入时，如果该包还导入了其它的包，那么会先将其它包导入进来，然后再对这些包中的包级常量和变量进行初始化，接着执行`init`函数（如果有的话），依次类推。等所有被导入的包都加载完毕了，就会开始对`main`包中的包级常量和变量进行初始化，然后执行`main`包中的`init`函数（如果存在的话），最后执行`main`函数。下图详细地解释了整个执行过程：
+程序的初始化和执行都起始于`main`包。如果`main`包还导入了其它的包，那会在编译时将它们依次导入。若一个包被多个包同时导入，那它只会被导入一次（例如很多包可能都会用到`fmt`包，但它只会被导入一次）。当一个包被导入时，如果该包还导入了其它的包，那会先将其它包导入进来，然后再对这些包中的包级常量和变量进行初始化，接着执行`init`函数（如果有的话）依次类推。等所有被导入的包都加载完毕了，就会开始对`main`包中的包级常量和变量进行初始化，然后执行`main`包中的`init`函数（如果存在的话）最后执行`main`函数。
 
 ![main函数引入包初始化流程图](https://astaxie.gitbooks.io/build-web-application-with-golang/zh/images/2.3.init.png?raw=true)
 
 ## import
 
-我们在写Go代码的时候经常用到import这个命令用来导入包文件，而我们经常看到的方式参考如下：
+用import命令来导入包文件，而我们经常看到的方式参考如下：
 
 ```Go
 import(
@@ -696,53 +676,44 @@ import(
 fmt.Println("hello world")
 ```
 
-上面这个fmt是Go语言的标准库，其实是去`GOROOT`环境变量指定目录下去加载该模块，当然Go的import还支持如下两种方式来加载自己写的模块：
+上面这个fmt是Go语言的标准库，其实是去`GOROOT`环境变量指定目录下去加载该模块，当然Go的import还支持用相对路径或者绝对路径来加载自己写的模块：
 
-1. 相对路径
+```Go
+import “./model” //当前文件同一目录的model目录，但是不建议这种方式来import
+import “shorturl/model” //加载gopath/src/shorturl/model模块
+```
 
-   import “./model” //当前文件同一目录的model目录，但是不建议这种方式来import
-
-2. 绝对路径
-
-   import “shorturl/model” //加载gopath/src/shorturl/model模块
-
-上面展示了一些import常用的几种方式，但是还有一些特殊的import，让很多新手很费解，下面我们来一一讲解一下到底是怎么一回事
+上面展示了一些import常用的几种方式，但是还有一些特殊的import
 
 1. 点操作
 
-   我们有时候会看到如下的方式导入包
-
    ```
-    import(
+ import(
         . "fmt"
     )
    ```
-
-   这个点操作的含义就是这个包导入之后在你调用这个包的函数时，你可以省略前缀的包名，也就是前面你调用的fmt.Println("hello world")可以省略的写成Println("hello world")
+   
+   表示这个包导入之后，在调用这个包的函数时，可以省略前缀的包名，即调用`fmt.Println("hello world")`可以直接写成`Println("hello world")`
 
 2. 别名操作
 
-   别名操作顾名思义我们可以把包命名成另一个我们用起来容易记忆的名字
-
    ```
-    import(
+ import(
         f "fmt"
     )
    ```
-
-   别名操作的话调用包函数时前缀变成了我们的前缀，即f.Println("hello world")
+   
+   顾名思义，调用包函数时前缀变成了我们的前缀，即`f.Println("hello world")`
 
 3. _操作
 
-   这个操作经常是让很多人费解的一个操作符，请看下面这个import
-
    ```Go
-    import (
+ import (
         "database/sql"
         _ "github.com/ziutek/mymysql/godrv"
     )
    ```
-
+   
    _操作其实是引入该包，而不直接使用包里面的函数，而是调用了该包里面的init函数。
 
 # struct
@@ -776,9 +747,7 @@ fmt.Println("hello world")
      
 ## struct的匿名字段
 
-   上面介绍了如何定义一个struct，定义时候字段名与其类型相对应。
-
-   实际上Go支持只提供类型，而不写字段名的方式，也就是*匿名字段*，也称为*嵌入字段*。
+   Go支持只提供类型，而不写字段名的方式，也就是*匿名字段*，也称为*嵌入字段*。
 
    当匿名字段是一个struct的时候，那么这个struct所拥有的全部字段都被隐式地引入了当前定义的这个struct。
 
@@ -798,10 +767,9 @@ type Student struct {
 }
 
 func main() {
-    // 我们初始化一个学生
+    // 初始化一个学生
     mark := Student{Human{"Mark", 25, 120}, "Computer Science"}
-
-    // 我们访问相应的字段
+    // 访问相应的字段
     fmt.Println("His name is ", mark.name)
     fmt.Println("His speciality is ", mark.speciality)
     // 修改对应的备注信息
@@ -856,7 +824,7 @@ func main() {
 }
 ```
 
-可以看到真的非常的好用了。
+可以看到这种类似于继承的方式，真的非常人性化了。
 
 # 面向对象
 
@@ -868,7 +836,7 @@ func main() {
 
 > "A method is a function with an implicit first argument, called a receiver."
 
-method的语法如下：
+method的语法如下，注意不要和function弄混哦：
 
 ```
 func (r ReceiverType) funcName(parameters) (results)
@@ -1001,7 +969,7 @@ func main() {
 
 *Q:* 那`PaintItBlack`里面调用`SetColor`不应该写成`(&bl[i]).SetColor(BLACK)`吗，因为`SetColor`的receiver是*Box，而不是Box。
 
-*A:* Yelp，但这两种方式都可以，因为Go知道receiver是指针，就自动帮你转了。
+*A:* Yep，但这两种方式都可以，因为Go知道receiver是指针，就自动帮你转了。
 
 也就是说：
 
@@ -1387,7 +1355,7 @@ func main() {
 
 goroutine运行在相同的地址空间，因此访问共享内存必须做好同步。
 
-goroutine间数据的通信机制为channel。channel可以与Unix shell 中双向管道做类比：可以通过它发送或者接收值。**这些值只能是channel类型**。
+goroutine间数据的通信机制为channel。channel可以与Unix shell 中双向管道做类比：可以通过它发送或者接收值，**这些值只能是channel类型**。
 
 定义一个channel时，需要定义发送到channel的值的类型。**必须使用make 创建channel：**
 
