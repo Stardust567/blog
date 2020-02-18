@@ -6,10 +6,16 @@ date: 2019-03-21 11:25:41
 <p></p>
 ### 友情链接
 
+#### 基友外链
 · [555的梦境](https://www.555dreams.xin/)
 · [薇拉航线](https://www.zuozuovera.com/)
 · [Viva La Vida](http://www.browallia.top/)
 · [译文Mosquito](http://www.yiwencc.com/)
+
+#### 17班的小可爱
+· [Huseph](https://huseph.github.io/)
+· [duxinhao52](https://duxinhao52.github.io/)
+· [兔子小窝](https://alexanderliu-creator.github.io/)
 
 ### 交换友链
 各位走过的路过的，脑电波对上的快乐网友，欢迎大家来互换友链啊（下方留言即可）

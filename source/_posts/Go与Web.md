@@ -261,8 +261,7 @@ import (
     "net/http"
 )
 
-type MyMux struct {
-}
+type MyMux struct {}
 
 func (p *MyMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     if r.URL.Path == "/" {
@@ -1992,3 +1991,149 @@ if createtime == nil {
 session启动后，我们设置了一个值，用于记录生成sessionID的时间。通过判断每次请求是否过期(这里设置了60秒)定期生成新的ID，这样使得攻击者获取有效sessionID的机会大大降低。
 
 上面两个手段的组合可以在实践中消除session劫持的风险，一方面， 由于sessionID频繁改变，使攻击者难有机会获取有效的sessionID；另一方面，因为sessionID只能在cookie中传递，然后设置了httponly，所以基于URL攻击的可能性为零，同时被XSS获取sessionID也不可能。最后，由于我们还设置了MaxAge=0，这样就相当于session cookie不会留在浏览器的历史记录里面。
+
+# RPC
+
+RPC是远程过程调用Remote procedure call的简称，可以使运行远程代码就像本机代码一样而不用考虑通信编程以及开销。是分布式系统中不同节点间流行的通信方式，Go语言的标准库也提供了一个简单的RPC实现。
+
+## net/rpc
+
+Package rpc provides access to the exported methods of an object across a network or other I/O connection. A server registers an object, making it visible as a service with the name of the type of the object. After registration, exported methods of the object will be accessible remotely. A server may register multiple objects (services) of different types but it is an error to register multiple objects of the same type.
+
+### Hello World
+
+我们先构造一个HelloService类型，其中的Hello方法用于实现打印功能：
+
+```go
+type HelloService struct {}
+
+func (p *HelloService) Hello(request string, reply *string) error {
+    *reply = "hello:" + request
+    return nil
+}
+```
+
+其中Hello方法必须满足**Go语言的RPC规则**：方法只能有两个可序列化的参数，其中第二个参数是指针类型，并且返回一个error类型，同时必须是公开的方法。
+
+然后就可以将HelloService类型的对象注册为一个RPC服务，其中rpc.Register函数调用会将对象类型中所有满足RPC规则的对象方法注册为RPC函数，所有注册的方法会放在“HelloService”服务空间之下。然后我们建立一个唯一的TCP链接，并且通过rpc.ServeConn函数在该TCP链接上为对方提供RPC服务。
+
+```go
+func main() {
+    rpc.RegisterName("HelloService", new(HelloService))
+
+    listener, err := net.Listen("tcp", ":1234")
+    if err != nil {
+        log.Fatal("ListenTCP error:", err)
+    }
+
+    conn, err := listener.Accept()
+    if err != nil {
+        log.Fatal("Accept error:", err)
+    }
+
+    rpc.ServeConn(conn)
+}
+```
+
+下面是客户端请求HelloService服务的代码，首先是通过rpc.Dial拨号RPC服务，然后通过client.Call调用具体的RPC方法。在调用client.Call时，第一个参数是用点号链接的RPC服务名字和方法名字，第二和第三个参数分别我们定义RPC方法的两个参数。
+
+```go
+func main() {
+    client, err := rpc.Dial("tcp", "localhost:1234")
+    if err != nil {
+        log.Fatal("dialing:", err)
+    }
+
+    var reply string
+    err = client.Call("HelloService.Hello", "hello", &reply)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println(reply)
+}
+```
+
+由这个例子可以看出RPC的使用其实非常简单。
+
+### Arith
+
+这是go官网所给出的一个例子，A server wishes to export an object of type Arith:
+
+```go
+package server
+
+import "errors"
+
+type Args struct {
+	A, B int
+}
+
+type Quotient struct {
+	Quo, Rem int
+}
+
+type Arith int
+
+func (t *Arith) Multiply(args *Args, reply *int) error {
+	*reply = args.A * args.B
+	return nil
+}
+
+func (t *Arith) Divide(args *Args, quo *Quotient) error {
+	if args.B == 0 {
+		return errors.New("divide by zero")
+	}
+	quo.Quo = args.A / args.B
+	quo.Rem = args.A % args.B
+	return nil
+}
+```
+
+The server calls (for HTTP service):
+
+```go
+arith := new(Arith)
+rpc.Register(arith)
+rpc.HandleHTTP()
+l, e := net.Listen("tcp", ":1234")
+if e != nil {
+	log.Fatal("listen error:", e)
+}
+go http.Serve(l, nil)
+```
+
+At this point, clients can see a service "Arith" with methods "Arith.Multiply" and "Arith.Divide". To invoke one, a client first dials the server:
+
+```go
+client, err := rpc.DialHTTP("tcp", serverAddress + ":1234")
+if err != nil {
+	log.Fatal("dialing:", err)
+}
+```
+
+Then it can make a remote call:
+
+```go
+// Synchronous call
+args := &server.Args{7,8}
+var reply int
+err = client.Call("Arith.Multiply", args, &reply)
+if err != nil {
+	log.Fatal("arith error:", err)
+}
+fmt.Printf("Arith: %d*%d=%d", args.A, args.B, reply)
+```
+
+or
+
+```go
+// Asynchronous call
+quotient := new(Quotient)
+divCall := client.Go("Arith.Divide", args, quotient, nil)
+replyCall := <-divCall.Done	// will be equal to divCall
+// check errors, print, etc.
+```
+
+这里暂时只做简单介绍（毕竟只是为了写MIT6.824的Labs）更多详情可以见官方文档 https://golang.org/pkg/net/rpc/
+
