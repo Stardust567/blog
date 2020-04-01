@@ -32,6 +32,10 @@ date: 2019-12-22 15:34:17
    这样之后有人需要用这个项目的时候直接打开命令行输入以下即可：
 
    > pip install -r requirements.txt
+   
+2. 解决matplotlib中文图例乱码问题
+
+  ```plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签             plt.rcParams['axes.unicode_minus']=False #用来正常显示负号```
 
 ## Go
 

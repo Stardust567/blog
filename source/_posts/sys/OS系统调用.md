@@ -6,7 +6,7 @@ tags:
   - OS
   - 进程
   - 系统调用
-categories: OS
+categories: Sys
 abbrlink: 22713
 date: 2019-03-18 17:33:13
 ---
