@@ -35,7 +35,28 @@ date: 2019-12-22 15:34:17
    
 2. 解决matplotlib中文图例乱码问题
 
-  ```plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签             plt.rcParams['axes.unicode_minus']=False #用来正常显示负号```
+   > plt.rcParams['font.sans-serif']=['SimHei']     # 用来正常显示中文标签   
+   > plt.rcParams['axes.unicode_minus']=False  # 用来正常显示负号
+
+3. 想判断x类型的时候，建议用`isinstance(x, 预判类型)`而不用`type(x)==预判类型`因为isinstance可以判断子类对象是否继承于父类，而type不可以。不过对于基本类型而言，type还是很好用的。
+
+   ```python
+   >>> student = Student("Jone", "UESTC") # class Student(Person)
+   >>> type(Student)==type(Person) # True
+   >>> isinstance(Person, Student) # False
+   
+   >>> isinstance(student, Student) # True
+   
+   >>> issubclass(Person, Student) # False
+   >>> issubclass(Student, Person) # True
+   ```
+4. 做大量数据循环的时候建议使用xrange而非range，xrange本质是个生成器，而range是个list，当数据量很大的时候，range需要提前开辟一堆内存空间。
+5. Python无明确的公共、私有或受保护的关键字来定义成员函数或属性，而是使用“_"和"__"来标识。
+
+   1. 单下划线的函数或属性，在类中可以调用和访问，类的实例可以直接访问，子类中可以访问；
+   2. 双下划线的函数或属性，在类中可以调用和访问，类的实例不可以直接访问，子类不可访问。
+   
+   但是带`__`的还有内建方法，python中所有类默认继承object类，我们可以重写object类的原始属性和方法，比如在类中重写`def __str__(self):`后，再print这个类时会直接调用重写后的方法。
 
 ## Go
 
@@ -104,9 +125,23 @@ date: 2019-12-22 15:34:17
 ## Terminal
 
 1. 用tree直接导出当前目录下的目录结构：
-
-   > tree -L 2 > test.txt
-
+   ```shell
+   tree -L 2 > test.txt
+   ```
+   
 2. 不想每次都输服务器密码（懒）怎么办：
+   ```shell
+   ssh-copy-id USER_NAME@IP_ADDRESS
+   ```
+   
+3. linux用密钥登录出现 *Permissions 0777 are too open.* 时可以加个`sudo`
+   ```shell
+   sudo ssh -i keyfile <user>@ip
+   ```
+   
+4. Ctrl+C 使当前命令Stopped并置于后台。`jobs`查看后台命令。`fg %1`使后台命令1在前台继续执行，`bg %1`使后台命令1在后台继续执行，相当于加上`&`。
 
-   > ssh-copy-id USER_NAME@IP_ADDRESS
+5. `&`和`nohup`都可以使命令后台执行，nohup即no hang up，在用户退出后依旧可以继续执行。
+
+6. linux用vim忘记sudo后无法退出，强制退出用`:q!`但还是先另存为`:w new_filename`好一点。
+

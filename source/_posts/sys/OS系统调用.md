@@ -12,6 +12,74 @@ date: 2019-03-18 17:33:13
 ---
 Linux内核中设置了一组用于实现各种系统功能的子程序，称为*系统调用（system call）*。同时它还提供些C语言函数库，这些库对系统调用进行包装和扩展。由于这些库函数与系统调用的关系非常紧密，习惯上把这些函数也称为系统调用。*本文是作者在大二写OS作业时整理的，安利文章[系统调用跟我学](https://www.ibm.com/developerworks/cn/linux/kernel/syscall/part3/index.html)这篇写得真的很舒服，本文很多内容都源于此。*
 <!-- More -->
+
+# 基础概念
+
+## 进程
+
+进程是系统资源分配的最小单位，由程序段数据段+PCB组成。
+
+进程拥有代码和打开的文件资源、数据资源、独立的内存空间。
+
+系统中的每个进程都运行在某个进程的上下文中。上下文是由程序正确运行的所需的状态组成的。这个状态包括放在内存中的程序代码和数据，栈，通用目的寄存器的内容，程序计数器，环境变量以及打开文件描述符。
+
+### 内存空间
+
+每个程序都有一片完整连续的逻辑地址空间，这些逻辑空间映射到离散的物理空间。在程序的运行过程，完成虚拟地址到物理地址的转换。进程的地址空间是分段的，存在所谓的数据段，代码段，bbs段，堆，栈等等。
+
+对32位机器来说，虚拟的地址空间大小就是4G，可能实际物理内存大小才1G到2G（请回想虚拟内存知识点） 
+
+- 从0xc000000000到0xFFFFFFFF共1G的大小是内核地址空间，余下的低地址3G空间则是用户地址空间。
+- Code VMA: 程序的代码段，CPU执行的机器指令部分。通常，这一段是可以共享的，即多线程共享进程的代码段。并且，此段是只读的，不能修改。
+- Data VMA: 程序的数据段，包含已初始化的全局和静态变量data段和未初始化的全局和静态变量bss段。
+- 堆和栈: new或者malloc分配的空间在堆上，需要编程者维护，若没有主动释放堆上的空间，进程运行结束后会被释放。栈上的是函数栈临时的变量，还有程序的局部变量，自动释放。
+- 共享库和mmap内容映射区：位于栈和堆之间，例如程序使用printf，函数共享库printf.o固定在某个物理内存位置上，让许多进程映射共享。mmap是一个系统函数，可以把磁盘文件的一部分直接映射到内存，这样文件中的位置直接就有对应的内存地址。
+- 命令行参数: 程序的命令行参数
+- 环境变量：类似于Linux下的PATH，HOME等环境变量，子进程会继承父进程的环境变量。
+
+![OS系统调用_process_address_space.png](https://i.loli.net/2020/04/25/RN7MsZekKYIGiwr.png)
+
+### 父子进程
+
+在unix/linux中，正常情况下，子进程是通过父进程创建的，子进程再创建新的进程。子进程的结束和父进程的运行是一个异步过程，即父进程无法预测子进程什么时候结束。 当一个进程完成它的工作终止之后，它的父进程需要调用wait()或waitpid()系统调用取得子进程的终止状态。
+
+**孤儿进程**：一个父进程退出，而它的一个或多个子进程还在运行，那么这些子进程将成为孤儿进程。孤儿进程将被系统init进程(pid=1)所收养，并由init进程对它们完成状态收集工作。
+
+**僵尸进程**：一个进程使用fork创建子进程，如果子进程退出，而父进程并没有调用wait或waitpid获取子进程的状态信息，那么子进程的进程描述符仍然保存在系统中。这种进程称之为僵死进程。
+
+## 线程
+
+线程是运行在进程上下文的逻辑流。线程从属于进程，是程序的实际执行者。一个进程至少包含一个主线程，也可以有更多的子线程，所以线程的粒度比进程小，线程由内核调度，也有自己的线程上下文，包括一个唯一的整数线程ID, 栈和栈指针，程序计数器，通用目的寄存器和条件码。但是，所有运行在一个进程里的线程共享该进程的整个虚拟地址空间。
+
+### 内存空间
+每个线程独立的线程上下文：一个唯一的整数线程ID, 栈和栈指针，程序计数器，通用目的寄存器和条件码。
+
+和其他线程共享的进程上下文的剩余部分：整个用户虚拟地址空间，那就是上图的只读代码段，读/写数据段，堆以及所有的共享库代码和数据区域，也共享所有打开文件的集合。
+
+线程的寄存器是不共享的，通常栈区是被相应线程独立访问的，但可能出现一个线程去访问另一个线程中的栈区的情况。这是因为这个线程获得了指向另一个线程栈区的指针，那么它就可以读写这个栈的任何部分。
+
+#### 线程崩溃
+
+线程有自己的 stack，但是没有单独的 heap 和 address space。只有进程有自己的 address space，而这个 space 中经过合法申请的部分叫做 process space。Process space 之外的地址都是非法地址。当一个线程向非法地址读取或者写入，无法确认这个操作是否会影响同一进程中的其它线程，所以只能是整个进程一起崩溃。
+
+### 主线程
+
+当一个程序启动时，就有一个进程被操作系统创建，与此同时一个线程也立刻运行，该线程为程序的**主线程**（Main Thread）。它是程序开始时就执行的，之后创建的线程都是这个主线程的子线程。每个进程至少都有一个主线程，如main函数。
+
+线程不像进程，一个进程中的线程之间没有父子之分，都是平级关系。理论上，某个线程的退出不会影响其他线程。但是当main执行完之后，return会使编译器调用进程退出的代码exit()，exit() 会让整个进程over终止，那所有线程自然都会退出。
+
+exit() 会让整个进程over终止，那所有线程自然都会退出。
+
+## 协程
+
+协程Coroutine，作用是在执行函数A时，可以随时中断，去执行函数B，然后中断继续执行函数A。但这一过程并不是函数调用（没有调用语句），这一整个过程看似像多线程，然而协程只有一个线程执行。协程由于由程序主动控制切换，没有线程切换的开销，所以执行效率极高。
+
+一个线程可以拥有多个协程。协程不被操作系统内核所管理，而完全是由程序所控制（也就是在用户态执行）
+
+比如python中的`yield`就是个经典的使用协程的例子，执行到`yield`后将暂停在这里，直到下一次被启动。
+
+# system call
+
 一般情况下进程不能访问内核所占内存也不能调用内核函数，但有一般就会有例外，系统调用就是例外。它的原理是进程先用适当的值填充寄存器，然后调用一个特殊的指令，该指令会跳到事先定义的内核中的一个位置*（该位置用户进程可读但不可写）*。
 Intel CPU中，这个由中断0x80实现。硬件知道一旦你跳到*这个位置（system_call）*，你就不再是限制模式下运行的用户，而“成为”了操作系统的内核~~接下来你就可以为所欲为~~。这个过程会检查系统调用号，该号码告诉内核进程请求哪种服务。然后查看*系统调用表(sys_call_table)*找到所调用的内核函数入口地址。接着调用函数，等返回后做一些系统检查，最后返回到进程（或到其他进程，如果这个进程时间用尽）。
 
@@ -21,6 +89,7 @@ Intel CPU中，这个由中断0x80实现。硬件知道一旦你跳到*这个位
 需要注意的是，errno的值只在函数发生错误时设置，如果函数不发生错误，errno的值就无定义，并不会被置为0。另外，在处理errno前最好先把它的值存入另一个变量，因为在错误处理过程中，即使像printf()这样的函数出错时也会改变errno的值。
 
 ## getpid
+
 在2.4.4版内核中，getpid是第20号系统调用，其在Linux函数库中的原型是：
 >`#include<sys/types.h> /* 提供类型pid_t的定义 */`
 >`#include<unistd.h> /* 提供函数的定义 */`
@@ -71,6 +140,152 @@ main()
 1. 在父进程中，fork返回新创建子进程的进程ID；
 2. 在子进程中，fork返回0；
 3. 如果出现错误，fork返回一个负值(当前的进程数已经达到了系统规定的上限*这时errno的值被设置为EAGAIN*或系统内存不足*这时errno的值被设置为ENOMEM*）。
+
+## exec
+
+*Question*:既然所有新进程都是由fork产生的，而且由fork产生的子进程和父进程几乎完全一样，那岂不是意味着系统中所有的进程都应该一模一样了吗？而且，就我们的常识来说，当我们执行一个程序的时候，新产生的进程的内容应就是程序的内容才对。是我们理解错了吗？
+实际上在Linux中，exec指的是一组函数，一共有6个，分别是：
+
+>`#include <unistd.h>`
+>`int execl(const char *path, const char *arg, ...);`
+>`int execlp(const char *file, const char *arg, ...);`
+>`int execle(const char *path, const char *arg, ..., char *const envp[]);`
+>`int execv(const char *path, char *const argv[]);`
+>`int execvp(const char *file, char *const argv[]);`
+>`int execve(const char *path, char *const argv[], char *const envp[]);`
+>
+>*其中只有execve是真正意义上的系统调用，其它都是在此基础上经过包装的库函数。*
+
+exec函数族的作用是根据指定的文件名找到可执行文件，并用它来取代调用进程的内容，换句话说，就是在调用进程内部执行一个可执行文件。这里的可执行文件既可以是二进制文件，也可以是任何Linux下可执行的脚本文件。
+
+与一般情况不同，exec函数族的函数执行成功后不会返回，因为调用进程的实体，包括代码段，数据段和堆栈等都已经被新的内容取代，只留下进程ID等一些表面上的信息仍保持原样，颇有些神似"三十六计"中的"金蝉脱壳"。看上去还是旧的躯壳，却已经注入了新的灵魂。只有调用失败了，它们才会返回一个-1，从原程序的调用点接着往下执行。
+
+现在我们应该明白了，Linux下是如何执行新程序的，每当有进程认为自己不能为系统和拥护做出任何贡献了，他就可以发挥最后一点余热，调用任何一个exec，让自己以新的面貌重生；或者，更普遍的情况是，如果一个进程想执行另一个程序，它就可以fork出一个新进程，然后调用任何一个exec，这样看起来就好像通过执行应用程序而产生了一个新进程一样。
+
+事实上第二种情况被应用得如此普遍，以至于Linux专门为其作了优化，我们已经知道，fork会将调用进程的所有内容原封不动的拷贝到新产生的子进程中去，这些拷贝的动作很消耗时间，而如果fork完之后我们马上就调用exec，这些辛辛苦苦拷贝来的东西又会被立刻抹掉，这看起来非常不划算，于是人们设计了一种*写时拷贝（copy-on-write）*技术`vfork()`，使得fork结束后并不立刻复制父进程的内容，而是复制相关指针，等到了真正实用的时候才复制指向的内容，这样如果下一条语句是exec，它就不会白白作无用功了，也就提高了效率。
+
+在学习它们之前，先来了解一下我们习以为常的main函数。
+
+>`int main(int argc, char *argv[], char *envp[])`
+>
+>参数argc指出了运行该程序时命令行参数的个数，数组argv存放了所有的命令行参数，数组envp存放了所有的环境变量。环境变量指的是一组值，从用户登录后就一直存在，很多应用程序需要依靠它来确定系统的一些细节，我们最常见的环境变量是PATH，它指出了应到哪里去搜索应用程序，如/bin；HOME也是比较常见的环境变量，它指出了我们在系统中的个人目录。环境变量一般以字符串"XXX=xxx"的形式存在，XXX表示变量名，xxx表示变量的值。
+
+值得一提的是，argv数组和envp数组存放的都是指向字符串的指针，这两个数组都以一个NULL元素表示数组的结尾。
+
+我们可以通过以下这个程序来观看传到argc、argv和envp里的都是什么东西：
+
+```C
+int main(int argc, char *argv[], char *envp[])
+{
+    printf("\n### ARGC ###\n%d\n", argc);
+    printf("\n### ARGV ###\n");
+    while(*argv)
+        printf("%s\n", *(argv++));
+    printf("\n### ENVP ###\n");
+    while(*envp)
+        printf("%s\n", *(envp++));
+    return 0;
+}
+```
+
+编译`cc main.c -o main`然后运行，故意加几个没有任何作用的命令行参数`./main -xx 000` 
+
+>\### ARGC ###
+>3
+>\### ARGV ###
+>./main
+>-xx
+>000
+>\### ENVP ###
+>PWD=/home/lei
+>REMOTEHOST=dt.laser.com
+>HOSTNAME=localhost.localdomain
+>QTDIR=/usr/lib/qt-2.3.1
+>LESSOPEN=|/usr/bin/lesspipe.sh %s
+>KDEDIR=/usr
+>USER=lei
+>LS_COLORS=
+>MACHTYPE=i386-redhat-linux-gnu
+>MAIL=/var/spool/mail/lei
+>INPUTRC=/etc/inputrc
+>LANG=en_US
+>LOGNAME=lei
+>SHLVL=1
+>SHELL=/bin/bash
+>HOSTTYPE=i386
+>OSTYPE=linux-gnu
+>HISTSIZE=1000
+>TERM=ansi
+>HOME=/home/lei
+>PATH=/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/home/lei/bin
+>_=./main
+
+我们看到，程序将"./main"作为第1个命令行参数，所以共有3个命令行参数。这可能与平时习惯的说法有些不同。
+现在回过头来看一下exec函数族，先把注意力集中在execve上：
+
+>`int execve(const char *path, char *const argv[], char *const envp[]);`
+
+对比一下main函数的完整形式，就会发现这两个函数里的argv和envp是完全一一对应的关系。execve第1个参数path是被执行应用程序的完整路径，第2个参数argv就是传给被执行应用程序的命令行参数，第3个参数envp是传给被执行应用程序的环境变量。
+留心看一下这6个函数还可以发现，前3个函数都是以execl开头的，后3个都是以execv开头的，它们的区别在于，execv开头的函数是以"char *argv[]"这样的形式传递命令行参数，而execl开头的函数采用了我们更容易习惯的方式，把参数一个一个列出来，然后以一个NULL表示结束。这里的NULL的作用和argv数组里的NULL作用是一样的。
+
+在全部6个函数中，只有execle和execve使用了char *envp[]传递环境变量，其它的4个函数都没有这个参数，这并不意味着它们不传递环境变量，这4个函数将把默认的环境变量不做任何修改地传给被执行的应用程序。而execle和execve会用指定的环境变量去替代默认的那些。
+
+还有2个以p结尾的函数execlp和execvp，咋看起来，它们和execl与execv的差别很小，事实也确是如此，除execlp和execvp之外的4个函数都要求，它们的第1个参数path必须是一个完整的路径，如"/bin/ls"；而execlp和execvp的第1个参数file可以简单到仅仅是一个文件名，如"ls"，这两个函数可以自动到环境变量PATH制定的目录里去寻找。
+
+```C
+#include <unistd.h>
+main()
+{
+    char *envp[]={"PATH=/tmp",
+            "USER=lei",
+            "STATUS=testing",
+            NULL};
+    char *argv_execv[]={"echo", "excuted by execv", NULL};
+    char *argv_execvp[]={"echo", "executed by execvp", NULL};
+    char *argv_execve[]={"env", NULL};
+    if(fork()==0)
+        if(execl("/bin/echo", "echo", "executed by execl", NULL)<0)
+            perror("Err on execl");
+    if(fork()==0)
+        if(execlp("echo", "echo", "executed by execlp", NULL)<0)
+            perror("Err on execlp");
+    if(fork()==0)
+        if(execle("/usr/bin/env", "env", NULL, envp)<0)
+            perror("Err on execle");
+    if(fork()==0)
+        if(execv("/bin/echo", argv_execv)<0)
+            perror("Err on execv");
+    if(fork()==0)
+        if(execvp("echo", argv_execvp)<0)
+            perror("Err on execvp");
+    if(fork()==0)
+        if(execve("/usr/bin/env", argv_execve, envp)<0)
+            perror("Err on execve");
+}
+```
+
+程序里调用了2个Linux常用的系统命令，echo和env。echo会把后面跟的命令行参数原封不动的打印出来，env用来列出所有环境变量。
+
+由于各个子进程执行的顺序无法控制，所以有可能出现一个比较混乱的输出--各子进程打印的结果交杂在一起，而不是严格按照程序中列出的次序。
+
+>executed by execl
+>PATH=/tmp
+>USER=lei
+>STATUS=testing
+>executed by execlp
+>excuted by execv
+>executed by execvp
+>PATH=/tmp
+>USER=lei
+>STATUS=testing
+>
+>果然不出所料，execle输出的结果跑到了execlp前面。
+
+在平时的编程中，如果用到了exec函数族，一定记得要加错误判断语句。因为与其他系统调用比起来，exec很容易受伤，被执行文件的位置，权限等很多因素都能导致该调用的失败。最常见的错误是：
+
+* 找不到文件或路径，此时errno被设置为ENOENT；
+* 数组argv和envp忘记用NULL结束，此时errno被设置为EFAULT；
+* 没有对要执行文件的运行权限，此时errno被设置为EACCES。
 
 ## exit
 在2.4.4版内核中，exit是第1号调用，其在Linux函数库中的原型是：
@@ -207,148 +422,12 @@ successfully get child 1526
 >
 我们让父进程和子进程分别睡眠了10秒钟和1秒钟，代表它们分别作了10秒钟和1秒钟的工作。父子进程都有工作要做，父进程利用工作的简短间歇察看子进程的是否退出，如退出就收集它。
 
-## exec
-*Question*:既然所有新进程都是由fork产生的，而且由fork产生的子进程和父进程几乎完全一样，那岂不是意味着系统中所有的进程都应该一模一样了吗？而且，就我们的常识来说，当我们执行一个程序的时候，新产生的进程的内容应就是程序的内容才对。是我们理解错了吗？
-实际上在Linux中，exec指的是一组函数，一共有6个，分别是：
->`#include <unistd.h>`
->`int execl(const char *path, const char *arg, ...);`
->`int execlp(const char *file, const char *arg, ...);`
->`int execle(const char *path, const char *arg, ..., char *const envp[]);`
->`int execv(const char *path, char *const argv[]);`
->`int execvp(const char *file, char *const argv[]);`
->`int execve(const char *path, char *const argv[], char *const envp[]);`
->
-*其中只有execve是真正意义上的系统调用，其它都是在此基础上经过包装的库函数。*
-
-exec函数族的作用是根据指定的文件名找到可执行文件，并用它来取代调用进程的内容，换句话说，就是在调用进程内部执行一个可执行文件。这里的可执行文件既可以是二进制文件，也可以是任何Linux下可执行的脚本文件。
-
-与一般情况不同，exec函数族的函数执行成功后不会返回，因为调用进程的实体，包括代码段，数据段和堆栈等都已经被新的内容取代，只留下进程ID等一些表面上的信息仍保持原样，颇有些神似"三十六计"中的"金蝉脱壳"。看上去还是旧的躯壳，却已经注入了新的灵魂。只有调用失败了，它们才会返回一个-1，从原程序的调用点接着往下执行。
-
-现在我们应该明白了，Linux下是如何执行新程序的，每当有进程认为自己不能为系统和拥护做出任何贡献了，他就可以发挥最后一点余热，调用任何一个exec，让自己以新的面貌重生；或者，更普遍的情况是，如果一个进程想执行另一个程序，它就可以fork出一个新进程，然后调用任何一个exec，这样看起来就好像通过执行应用程序而产生了一个新进程一样。
-
-事实上第二种情况被应用得如此普遍，以至于Linux专门为其作了优化，我们已经知道，fork会将调用进程的所有内容原封不动的拷贝到新产生的子进程中去，这些拷贝的动作很消耗时间，而如果fork完之后我们马上就调用exec，这些辛辛苦苦拷贝来的东西又会被立刻抹掉，这看起来非常不划算，于是人们设计了一种*写时拷贝（copy-on-write）*技术，使得fork结束后并不立刻复制父进程的内容，而是到了真正实用的时候才复制，这样如果下一条语句是exec，它就不会白白作无用功了，也就提高了效率。
-
-在学习它们之前，先来了解一下我们习以为常的main函数。
->`int main(int argc, char *argv[], char *envp[])`
->
-参数argc指出了运行该程序时命令行参数的个数，数组argv存放了所有的命令行参数，数组envp存放了所有的环境变量。环境变量指的是一组值，从用户登录后就一直存在，很多应用程序需要依靠它来确定系统的一些细节，我们最常见的环境变量是PATH，它指出了应到哪里去搜索应用程序，如/bin；HOME也是比较常见的环境变量，它指出了我们在系统中的个人目录。环境变量一般以字符串"XXX=xxx"的形式存在，XXX表示变量名，xxx表示变量的值。
-
-值得一提的是，argv数组和envp数组存放的都是指向字符串的指针，这两个数组都以一个NULL元素表示数组的结尾。
-
-我们可以通过以下这个程序来观看传到argc、argv和envp里的都是什么东西：
-```C
-int main(int argc, char *argv[], char *envp[])
-{
-    printf("\n### ARGC ###\n%d\n", argc);
-    printf("\n### ARGV ###\n");
-    while(*argv)
-        printf("%s\n", *(argv++));
-    printf("\n### ENVP ###\n");
-    while(*envp)
-        printf("%s\n", *(envp++));
-    return 0;
-}
-```
-编译`cc main.c -o main`然后运行，故意加几个没有任何作用的命令行参数`./main -xx 000` 
->\### ARGC ###
-3
-\### ARGV ###
-./main
--xx
-000
-\### ENVP ###
-PWD=/home/lei
-REMOTEHOST=dt.laser.com
-HOSTNAME=localhost.localdomain
-QTDIR=/usr/lib/qt-2.3.1
-LESSOPEN=|/usr/bin/lesspipe.sh %s
-KDEDIR=/usr
-USER=lei
-LS_COLORS=
-MACHTYPE=i386-redhat-linux-gnu
-MAIL=/var/spool/mail/lei
-INPUTRC=/etc/inputrc
-LANG=en_US
-LOGNAME=lei
-SHLVL=1
-SHELL=/bin/bash
-HOSTTYPE=i386
-OSTYPE=linux-gnu
-HISTSIZE=1000
-TERM=ansi
-HOME=/home/lei
-PATH=/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/home/lei/bin
-_=./main
->
-我们看到，程序将"./main"作为第1个命令行参数，所以共有3个命令行参数。这可能与平时习惯的说法有些不同。
-现在回过头来看一下exec函数族，先把注意力集中在execve上：
->`int execve(const char *path, char *const argv[], char *const envp[]);`
->
-对比一下main函数的完整形式，就会发现这两个函数里的argv和envp是完全一一对应的关系。execve第1个参数path是被执行应用程序的完整路径，第2个参数argv就是传给被执行应用程序的命令行参数，第3个参数envp是传给被执行应用程序的环境变量。
-留心看一下这6个函数还可以发现，前3个函数都是以execl开头的，后3个都是以execv开头的，它们的区别在于，execv开头的函数是以"char *argv[]"这样的形式传递命令行参数，而execl开头的函数采用了我们更容易习惯的方式，把参数一个一个列出来，然后以一个NULL表示结束。这里的NULL的作用和argv数组里的NULL作用是一样的。
-
-在全部6个函数中，只有execle和execve使用了char *envp[]传递环境变量，其它的4个函数都没有这个参数，这并不意味着它们不传递环境变量，这4个函数将把默认的环境变量不做任何修改地传给被执行的应用程序。而execle和execve会用指定的环境变量去替代默认的那些。
-
-还有2个以p结尾的函数execlp和execvp，咋看起来，它们和execl与execv的差别很小，事实也确是如此，除execlp和execvp之外的4个函数都要求，它们的第1个参数path必须是一个完整的路径，如"/bin/ls"；而execlp和execvp的第1个参数file可以简单到仅仅是一个文件名，如"ls"，这两个函数可以自动到环境变量PATH制定的目录里去寻找。
-```C
-
-#include <unistd.h>
-main()
-{
-    char *envp[]={"PATH=/tmp",
-            "USER=lei",
-            "STATUS=testing",
-            NULL};
-    char *argv_execv[]={"echo", "excuted by execv", NULL};
-    char *argv_execvp[]={"echo", "executed by execvp", NULL};
-    char *argv_execve[]={"env", NULL};
-    if(fork()==0)
-        if(execl("/bin/echo", "echo", "executed by execl", NULL)<0)
-            perror("Err on execl");
-    if(fork()==0)
-        if(execlp("echo", "echo", "executed by execlp", NULL)<0)
-            perror("Err on execlp");
-    if(fork()==0)
-        if(execle("/usr/bin/env", "env", NULL, envp)<0)
-            perror("Err on execle");
-    if(fork()==0)
-        if(execv("/bin/echo", argv_execv)<0)
-            perror("Err on execv");
-    if(fork()==0)
-        if(execvp("echo", argv_execvp)<0)
-            perror("Err on execvp");
-    if(fork()==0)
-        if(execve("/usr/bin/env", argv_execve, envp)<0)
-            perror("Err on execve");
-}
-```
-程序里调用了2个Linux常用的系统命令，echo和env。echo会把后面跟的命令行参数原封不动的打印出来，env用来列出所有环境变量。
-
-由于各个子进程执行的顺序无法控制，所以有可能出现一个比较混乱的输出--各子进程打印的结果交杂在一起，而不是严格按照程序中列出的次序。
->executed by execl
-PATH=/tmp
-USER=lei
-STATUS=testing
-executed by execlp
-excuted by execv
-executed by execvp
-PATH=/tmp
-USER=lei
-STATUS=testing
->
-果然不出所料，execle输出的结果跑到了execlp前面。
-
-在平时的编程中，如果用到了exec函数族，一定记得要加错误判断语句。因为与其他系统调用比起来，exec很容易受伤，被执行文件的位置，权限等很多因素都能导致该调用的失败。最常见的错误是：
-* 找不到文件或路径，此时errno被设置为ENOENT；
-* 数组argv和envp忘记用NULL结束，此时errno被设置为EFAULT；
-* 没有对要执行文件的运行权限，此时errno被设置为EACCES。
-
 ## 总结
-下面就让我用一些形象的比喻，来对进程短暂的一生作一个小小的总结：
+进程短暂的一生：
 
-随着一句fork，一个新进程呱呱落地，但它这时只是老进程的一个克隆。
+随着fork，一个新进程出生，但它这时只是老进程的一个克隆。
 然后随着exec，新进程脱胎换骨，离家独立，开始了为人民服务的职业生涯。
-人有生老病死，进程也一样，它可以是自然死亡，即运行到main函数的最后一个"}"，从容地离我们而去；也可以是自杀，自杀有2种方式，一种是调用exit函数，一种是在main函数内使用return，无论哪一种方式，它都可以留下遗书，放在返回值里保留下来；它还甚至能可被谋杀，被其它进程通过另外一些方式结束他的生命。
+人有生老病死，进程也一样，它可以是自然死亡，即运行到main函数的最后一个"}"，从容离去；也可以是自杀，自杀有2种方式，一种是调用exit函数，一种是在main函数内使用return，无论哪一种方式，它都可以留下遗书，放在返回值里保留下来；它还甚至能可被谋杀，被其它进程通过另外一些方式结束他的生命。
 进程死掉以后，会留下一具僵尸，wait和waitpid充当了殓尸工，把僵尸推去火化，使其最终归于无形。
 
 这就是进程完整的一生。

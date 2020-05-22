@@ -188,10 +188,8 @@ int tree_leaves(TNode* tree){
 }
 
 int tree_depth(TNode* tree){
-	int dl = 0;
-	int dr = 0;
 	if(tree==NULL) return 0;
-	if(tree->lc==NULL&&tree->rc==NULL) return 1;
+	int dl,dr;
 	dl = tree_depth(tree->lc);
 	dr = tree_depth(tree->rc);
 	return 1+((dl>dr)?dl:dr);
@@ -225,4 +223,5 @@ int tree_width(TNode* tree){
   	free(queue);
   	return width;
 }
-​```
+
+```

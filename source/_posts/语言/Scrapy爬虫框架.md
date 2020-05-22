@@ -7,7 +7,7 @@ tags:
   - 大二
   - 爬虫
   - scrapy
-categories: 爬虫
+categories: Python
 ---
 
 Scrapy是一个为了爬取网站数据，提取结构性数据而编写的应用框架。
