@@ -3,6 +3,7 @@ Thumbs.db
 db.json
 *.log
 node_modules/
+live2d_models/
 public/
 .deploy*/
 *.github.io/
