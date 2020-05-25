@@ -7,7 +7,7 @@ title: Star Trail
 subtitle: stardust1084062596@gmail.com
 keywords:
 author: Stardust567
-language: zh-Hans
+language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
@@ -22,6 +22,17 @@ abbrlink:
   alg: crc16 #support crc16(default) and crc32
   rep: hex    #support dec(default) and hex
 
+# Post wordcount display settings
+# Dependencies: https://github.com/theme-next/hexo-symbols-count-time
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: true
+  total_time: true
+  exclude_codeblock: false
+  awl: 2
+  wpm: 275
+  suffix: "mins."
 
 # Directory
 source_dir: source
@@ -80,7 +91,8 @@ pagination_dir: page
 plugins:
   hexo-generate-feed
 ## Themes: https://hexo.io/themes/
-theme: next
+
+theme: next-reloaded
 
 live2d:
   enable: false
