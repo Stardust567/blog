@@ -4,17 +4,18 @@ comments: true
 tags:
   - GAP
   - Go
-  - Tips
+  - goroutine
+  - concurrency
 categories: Go
 abbrlink: 28fa
 date: 2020-02-06 09:14:05
 ---
 
-## goroutine
-
 goroutine是Go并行设计的核心。goroutine算是协程，它比线程更小，十几个goroutine可能体现在底层就是五六个线程，Go语言内部实现了这些goroutine之间的内存共享。执行goroutine只需极少的栈内存(大概是4~5KB)。goroutine比thread更易用、更高效、更轻便。<!--more-->
 
-goroutine是通过Go的runtime管理的一个线程管理器。goroutine通过`go`关键字实现，类似个普通函数。
+# goroutine
+
+goroutine是通过Go的runtime管理的一个线程管理器。goroutine通过`go`关键字实现，类似普通函数。
 
 ```Go
 package main

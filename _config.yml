@@ -7,7 +7,7 @@ title: Star Trail
 subtitle: stardust1084062596@gmail.com
 keywords:
 author: Stardust567
-language: zh-CN
+language: zh-Hans
 timezone: Asia/Shanghai
 
 # URL
@@ -89,10 +89,9 @@ pagination_dir: page
 # Extensions
 ## Plugins: http://hexo.io/plugins/
 plugins:
-  hexo-generate-feed
 ## Themes: https://hexo.io/themes/
 
-theme: next-reloaded
+theme: next
 
 live2d:
   enable: false
@@ -119,9 +118,9 @@ live2d:
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: git
+- type: git
   # repo: https://github.com/Stardust567/stardust567.github.io.git
-  repo: https://Stardust567:Rycbar3313@github.com/Stardust567/Stardust567.github.io.git
+  repo: git@github.com:Stardust567/Stardust567.github.io
   branch: master
   
 search:
@@ -135,6 +134,8 @@ Plugins:
 - hexo-generator-sitemap
 sitemap:
   path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml
   
 math:
   engine: 'mathjax' # or 'katex'

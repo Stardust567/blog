@@ -108,6 +108,10 @@ date: 2019-12-22 15:34:17
 4. 用pymysql时候，想借MySQL函数`STR_TO_DATE`传DATE类型数据，记得年月日用%%而不是%：
 
    > sql = 'insert into recruit_info(title,time) VALUES (%s,STR_TO_DATE(%s, "%%Y-%%m-%%d"))'
+   
+5. revoke时候出现ERROR 1141 (42000)是因为当初你怎么grant的就必须怎么revoke回来，无法有修改。
+
+6. mysql默认root账户无法远程登录，哪怕你改名改密码也不行，会出现ERROR 1045 (28000) 
 
 ## PostgreSQL
 

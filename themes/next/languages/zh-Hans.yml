@@ -26,21 +26,21 @@ post:
   created: 写于
   modified: 更新于
   sticky: 置顶
-  posted: 收藏于
-  in: 分类于
+  posted: 写于
+  in: 归档
   read_more: 翻牌子
   untitled: 未命名
   toc_empty: 此文章未包含目录
   visitors: 翻阅
-  wordcount: 共
+  wordcount: 共计
   min2read: 时长
-  totalcount: Site words total count
+  totalcount: 总计
   copyright:
     author: 本文作者
     link: 本文链接
     license_title: 版权声明
-    license_content: '本博客所有文章除特别声明外，均采用
-      <a href="%s" rel="external nofollow" target="_blank">%s</a> 许可协议。转载请注明出处！'
+    license_content: '本博客所有文章均采用
+      <a href="%s" rel="external nofollow" target="_blank">%s</a> 许可协议，转载请务必署名，欢迎邮件私我讨论交流。'
 
 page:
   totally: 共有
@@ -91,8 +91,8 @@ symbol:
   colon: '：'
 
 reward:
-  donate: 打赏
-  wechatpay: 微信支付
+  donate: 投币
+  wechatpay: 微信
   alipay: 支付宝
   bitcoin: 比特币
 
