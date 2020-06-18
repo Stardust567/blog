@@ -126,7 +126,7 @@ async def main():
 > Two
 > 1 & 2 End.
 
-不过一般我们编程时候更习惯用list把Tasks简单的封装一下，不过记住create_task会将task加入事件循环，但事件循环是由asyncio.run(main())创建，所以create_task必须要写在main()函数里面，不然会报错。
+不过一般我们编程时候更习惯用list把Tasks简单的封装一下，但是要记住create_task会将task加入事件循环，但事件循环是由asyncio.run(main())创建，所以create_task必须要写在main()函数里面，不然会报错。
 
 ```python
 async def main():
@@ -144,7 +144,7 @@ async def main():
 > One
 > Two
 > Two
-> {<Task finished coro=<count() done, defined at 0521.py:3> result=1>, <Task finished coro=<count() done, defined at 0521.py:3> result=2>}
+> `{<Task finished coro=<count() done, defined at 0521.py:3> result=1>, <Task finished coro=<count() done, defined at 0521.py:3> result=2>}`
 > set()
 
 ## API
@@ -292,7 +292,7 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
-因为我中间那个域名还没申请https所以会有error改成http就好了（不过我之后可能没钱供域名就是了orz）
+因为我中间那个域名还没申请https所以会有error改成http就好了（不过之后域名到期我可能没钱供就是了orz）
 
 > 发送请求： https://stardust567.github.io
 > 发送请求： https://www.stardust567.top
