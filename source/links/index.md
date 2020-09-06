@@ -11,6 +11,8 @@ date: 2019-03-21 11:25:41
 · [薇拉航线](https://www.zuozuovera.com/)
 · [Viva La Vida](http://www.browallia.top/)
 · [译文Mosquito](http://www.yiwencc.com/)
+· [Ascent](http://yijing233.com/)
+· [BANKRUPT](https://blog.xtopia.fun/)
 
 #### 17班的小可爱
 · [Huseph](https://huseph.github.io/)

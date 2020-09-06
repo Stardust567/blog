@@ -149,3 +149,5 @@ date: 2019-12-22 15:34:17
 
 6. linux用vim忘记sudo后无法退出，强制退出用`:q!`但还是先另存为`:w new_filename`好一点。
 
+7. 网易云音乐，`npx @nondanee/unblockneteasemusic -p 16300`然后客户端设置代理localhost:16300
+
