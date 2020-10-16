@@ -5,7 +5,7 @@ abbrlink: b2a
 date: 2019-07-07 11:44:36
 tags:
   - 大二
-  - 爬虫
+  - crawl
   - scrapy
 categories: Python
 ---

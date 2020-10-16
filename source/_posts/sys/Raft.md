@@ -14,17 +14,15 @@ date: 2020-03-16 13:59:44
 
 结合 MIT-6.824-2018 的 lab2 来简单写下学习raft的笔记。<!--more-->
 
-# Raft
-
 Raft是一种共识算法，它在容错和性能上与Paxos等效，但更容易理解学习。可以通过 http://thesecretlivesofdata.com/raft/ 简单认知下Raft共识算法。
 
 共识是容错分布式系统中的一个基本问题，共识涉及多个服务器就价值达成一致。共识通常出现在复制状态机的背景下，每个服务器都有一个状态机和一个日志，每个状态机都从其日志中获取输入命令。以哈希表为例，日志将包含诸如 set x=3 之类的命令，而共识算法要确保所有状态机都 x=3 作为第n个命令应用。即每个状态机处理相同系列的命令，从而产生相同系列的结果并到达相同系列的状态。
 
-## Raft Paper
+# Raft Paper
 
 Raft 选举出一个leader来管理复制日志：leader从客户端接收日志条目，将其复制到其他服务器上，并在保证安全的时候应用日志条目到他们的状态机中。由此，Raft 将一致性问题分解成三个子问题：**Leader Election**, **Log Replication**, **Safety**（所有状态机都应执行相同的命令序列）
 
-### Raft Properties
+## Raft Properties
 
 Raft 在任何时候都保证以下的各个特性。
 
@@ -34,7 +32,7 @@ Raft 在任何时候都保证以下的各个特性。
 * **Leader Completeness**：一个committed的entry会始终存在于之后terms的leaders的log中。
 * **State Machine Safety**：若一个给定index的entry已经被某台服务器apply，则不会有服务器会在其log的index位置apply别的entry的。
 
-### Raft Basics
+## Raft Basics
 
 在任何时刻，每一个服务器节点都处于这三个状态之一：leader、followers、candidates。
 通常系统中只有一个leader且其他节点全都是followers，在一个任期内，leader一直保持，直到自己宕机。Followers都是被动的：他们不会发送任何请求，只是简单的响应来自leader / candidates的请求。
@@ -45,7 +43,7 @@ Raft 把时间分割成任意长度的**任期terms**。任期用连续的整数
 
 每一个节点存储一个当前任期号current term，这一编号在整个时期内单调的增长。当服务器之间通信的时候会交换current term；如果一个服务器的current term比其他人小，那么他会更新到较大的编号值。Raft 算法中服务器节点之间通信使用远程过程调用（RPCs），并且基本的一致性算法只需要两种类型的 RPCs。请求投票（RequestVote） RPCs 由候选人在选举期间发起，然后附加条目（AppendEntries）RPCs 由领导人发起，用来复制日志和提供一种心跳机制。
 
-#### Leader election
+### Leader election
 
 Raft 使用一种heartbeat机制来触发领导人选举。当服务器程序启动时，各自都是followers。Leader会周期性的向所有followers发送心跳包 (AppendEntries RPCs that carry no log entries) 来维持自己的权威。Followers只要收到了来自 leader / candidates 的有效RPCs就会一直保持followers。但如果一个follower在一段时间（random，一般在150ms-300ms）里没有接收到任何消息，即**选举超时**，那他会认为系统中无可用leader，并发起选举以选出新的leader。
 
@@ -57,7 +55,7 @@ Raft 使用一种heartbeat机制来触发领导人选举。当服务器程序启
 
 * *(c) **a period of time goes by with no winner**：*多个followers同时成为candidates来瓜分选票，导致无人能赢得大多数人的支持。为了避免瓜分次数过多，每个candidate在发RequestVote RPCs时都会设置一个**随机的**等待时间，若超时则重新发送RequestVote RPCs 。这样每次瓜分后，所有candidates都会超时，current term++开启新一轮选举。
 
-#### Log replication
+### Log replication
 
 客户端只和leader交互，leader把客户端指令作为一条log entry附加到自己log中，然后并行的发起 AppendEntries RPCs 给 followers，让他们复制这条entry。当这其被**安全的**复制，leader会将这条entry内容应用在自身状态机上并将其commit，同时return result给客户端。接下来leader会通知followers该entry已经committed，followers将其应用到各自状态机，完成各自log上该entry的commit。leader会不断的重复尝试 AppendEntries RPCs （尽管已经回复了客户端）直到所有的followers都最终存储了所有的日志条目。
 
@@ -77,7 +75,7 @@ Raft 的日志机制维护了不同服务器的日志之间的高层次的一致
 
 Leader针对每一个follower维护了一个 **nextIndex**（即将要发给followers的entry的index）当一个leader刚获得权力的时候，初始化所有的 nextIndex  = leader log highest index + 1。如果出现AppendEntries RPC被followers拒绝的情况，leader会让 nextIndex-- 并重试。最终 nextIndex 会停在两者log一致的点，此时的AppendEntries RPC将不再被拒绝，即可followers冲突的entries全部删除并逐个追加leader的entries。通过这种机制，leader在获得权力的时候就不需要任何特殊的操作来恢复一致性。
 
-#### Safety
+### Safety
 
 我们需要保证每个状态机都会按照相同的顺序执行相同的指令。但如果出现，一些entries被大部分followers接受并commit，但存在一个follower处于unavailable没有接受这些entries，但偏偏该follower在下一term成为了leader，这就会导致那些committed entries明明执行了却被强制删除，即不同状态机执行不同的指令序列。
 
@@ -93,11 +91,11 @@ Leader不能断定之前term中保存到大部分服务器的entry是否已经co
 
 由此，对于之前term中的entries，leader不会通过计算其副本数目的方式去commit，事实上leader只会对当前term的entries用计算副本数目的方式来commit。而当前term的entries被commit，由于日志匹配特性，之前的entries都会被间接commit。
 
-### Condenced Summary
+## Condenced Summary
 
 ![Go与分布式_Raft_summary.png](https://i.loli.net/2020/02/20/NzSX6Eq8yjUhPem.png)
 
-#### AppendEntries RPC
+### AppendEntries RPC
 
 由leader负责调用来复制日志指令；也会用作heartbeat，receiver实现：
 
@@ -107,26 +105,26 @@ Leader不能断定之前term中保存到大部分服务器的entry是否已经co
 4. 附加日志中尚未存在的任何新条目
 5. 如果 `leaderCommit > commitIndex`，令 commitIndex = MIN(leaderCommit, 新日志条目索引值)
 
-#### RequestVote RPC
+### RequestVote RPC
 
 由candidates负责调用来征集选票，receiver实现：
 
 1. 如果`term < currentTerm`返回 false 
 2. 如果 votedFor 为 null / candidateId，且candidate的日志至少和receiver一样新，那就投票给他
 
-#### Rules for Servers
+### Rules for Servers
 
-##### All Servers
+#### All Servers
 
 - 如果`commitIndex > lastApplied`，那就 lastApplied ++，并把`log[lastApplied]`应用到状态机中
 - 如果接收到的RPC请求或响应中，term`T > currentTerm`，则令`currentTerm = T`，并切换状态为followers
 
-##### Followers
+#### Followers
 
 - 响应来自leader和candidates的RPCs
 - 如果在选举超时前一直没有收到leader或candidates的RPCs，就自己变成candidate
 
-##### Candidates
+#### Candidates
 
 - 在转变成candidates后就立即开始选举过程
   - 自增当前的任期号（currentTerm）
@@ -137,7 +135,7 @@ Leader不能断定之前term中保存到大部分服务器的entry是否已经co
 - 如果接收到来自新的领导人的 AppendEntries RPC，转变成跟随者
 - 如果选举过程超时，再次发起一轮选举
 
-##### Leader
+#### Leader
 
 - 一旦成为领导人：发送空的AppendEntries RPC (heartbeat) 给其他所有的服务器；在一定的空余时间之后不停的重复发送，以阻止followers超时
 - 如果接收到来自客户端的请求：附加条目到本地日志中，在条目被应用到状态机后响应客户端
@@ -146,7 +144,7 @@ Leader不能断定之前term中保存到大部分服务器的entry是否已经co
   - 如果因为日志不一致而失败，减少 nextIndex 重试
 - 如果存在一个N满足`N > commitIndex`，且大多数的`matchIndex[i] ≥ N`成立，并且`log[N].term == currentTerm`成立，则令`commitIndex = N`
 
-### Cluster membership changes
+## Cluster membership changes
 
 实际操作中偶尔会改变集群的配置，但服务器直接从旧配置转换到新配置很容易出现分歧。为避免存在新旧配置在同一时间下出现各自leader，即同一时刻新旧配置同时生效的情况，配置更改必须使用两阶段方法。在 Raft 中，集群先切换到一个过渡的配置，称之为共同一致；一旦共同一致被commit，那系统就切换到新配置上。共同一致是老配置和新配置的结合：
 
@@ -166,7 +164,7 @@ Leader不能断定之前term中保存到大部分服务器的entry是否已经co
 
 *  移除不在 C-new 中的服务器可能会扰乱集群。这些服务器因为不在C-new里，所以leader根本不会给他们发心跳，之后这些节点就会选举超时，发送term++的请求投票 RPCs，这样会导致当前leader回退成follower。为了避免这种情况，除非leader超时，不然各节点拒收投票请求RPCs。同时在每次选举前等待一个选举超时时间，这样每次旧节点在发起选举前需要等待一段时间，那这段时间新Leader可以发送心跳，减少影响。 
 
-### Log compaction
+## Log compaction
 
 Raft 需要一定的机制去清除日志里积累的陈旧的信息，快照Snapshotting是最简单的压缩方法。在快照系统中，整个系统的状态都以快照的形式写入到稳定的持久化存储中，然后到那个时间点之前的日志全部丢弃。
 ![Go与分布式_Raft_snapShot.png](https://i.loli.net/2020/03/01/xXltDZv8yfmi1n6.jpg)
@@ -175,7 +173,7 @@ Raft 需要一定的机制去清除日志里积累的陈旧的信息，快照Sna
 但当followers运行缓慢或作为C-new刚加入集群时，需要leader发送快照让他们更新到最新状态。这种情况下leader使用 InstallSnapshot RPCs 来发送快照。当followers通过这种 RPC 接收到快照时，会决定如何处理log：通常快照会含当前log没有的信息，此时会丢弃整个log，用快照代替；也可能接收到的快照是自己日志的前面部分（网络重传或者错误），那么被快照包含的entries会被全部删除，但快照后面的entries仍然有效，必须保留。
 ![Go与分布式_Raft_snapShotRPC.png](https://i.loli.net/2020/03/01/gbPEGHk894xwdID.png)
 
-### Client interaction
+## Client interaction
 
 Raft 要求客户端只和leader交互，所以当客户端请求到follower时，如果集群里存在leader，follower会将leader地址发给客户端；如果此时集群里无leader，客户端会等待、重试。
 
