@@ -126,6 +126,15 @@ date: 2019-12-22 15:34:17
 
 1. 刚开始我在修改代码中途发现自己没下`vue-router`强停后npm install结果errno -4048 npm ERR! syscall rename，解决方法`npm cache clean --force`后npm install即可。
 
+## Hadoop
+
+Hadoop启动没有ResourceManager，查看log发现了报错`NoClassDefFoundError: javax/activation/DataSource`，直接下载activation-1.1.1.jar到lib目录下，或者本地上传到${HADOOP_HOME}/share/hadoop/yarn/lib目录下后重新启动start-yarn.sh即可。
+
+```shell
+cd ${HADOOP_HOME}/share/hadoop/yarn/lib
+wget https://repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar
+```
+
 ## Terminal
 
 1. 用tree直接导出当前目录下的目录结构：
@@ -150,4 +159,6 @@ date: 2019-12-22 15:34:17
 6. linux用vim忘记sudo后无法退出，强制退出用`:q!`但还是先另存为`:w new_filename`好一点。
 
 7. 网易云音乐，`npx @nondanee/unblockneteasemusic -p 16300`然后客户端设置代理localhost:16300
+
+8. 找寻相关文件的命令，比如`find /hadoop -name "*hadoop*.log"`在hadoop文件夹下寻找相关log
 
